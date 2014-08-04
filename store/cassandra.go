@@ -48,7 +48,7 @@ func (s *CassandraStore) Set(p *metric.Point) error {
 	for _, bucket := range rule.Buckets {
 		wg.Add(1)
 		go func(bucket *schema.Bucket) {
-			err := s.session.Query(`UPDATE metric USING TTL ? SET data = data + ? WHERE tenant = '' AND rollup = ? AND period = ? AND path = ? AND time = ?`,
+			err := s.session.Query(`UPDATE metric USING TTL ? SET data = data + ? AND rollup = ? AND period = ? AND path = ? AND time = ?`,
 				int(bucket.Ttl.Seconds()), []float64{p.Value}, int(bucket.Rollup.Seconds()), bucket.Period, p.Path, bucket.RoundDown(p.Timestamp),
 			).Exec()
 			if err != nil {
