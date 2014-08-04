@@ -1,19 +1,19 @@
 package main
 
 import (
-	"github.com/mattrobenolt/go-cyanite/aggregate"
-	"github.com/mattrobenolt/go-cyanite/api"
-	"github.com/mattrobenolt/go-cyanite/carbon"
-	"github.com/mattrobenolt/go-cyanite/config"
-	"github.com/mattrobenolt/go-cyanite/schema"
-	"github.com/mattrobenolt/go-cyanite/store"
+	"github.com/mattrobenolt/mineshaft/aggregate"
+	"github.com/mattrobenolt/mineshaft/api"
+	"github.com/mattrobenolt/mineshaft/carbon"
+	"github.com/mattrobenolt/mineshaft/config"
+	"github.com/mattrobenolt/mineshaft/schema"
+	"github.com/mattrobenolt/mineshaft/store"
 
 	"flag"
 	"log"
 	"runtime"
 )
 
-var configPath = flag.String("f", "/etc/cyanite/cyanite.conf", "configuration file")
+var configPath = flag.String("f", "/etc/mineshaft/mineshaft.conf", "configuration file")
 
 func init() {
 	flag.Parse()

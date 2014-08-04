@@ -2,9 +2,9 @@ package store
 
 import (
 	"github.com/gocql/gocql"
-	"github.com/mattrobenolt/go-cyanite/aggregate"
-	"github.com/mattrobenolt/go-cyanite/metric"
-	"github.com/mattrobenolt/go-cyanite/schema"
+	"github.com/mattrobenolt/mineshaft/aggregate"
+	"github.com/mattrobenolt/mineshaft/metric"
+	"github.com/mattrobenolt/mineshaft/schema"
 
 	"log"
 	"sync"

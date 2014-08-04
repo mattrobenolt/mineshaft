@@ -1,6 +1,6 @@
 GOPATH=`pwd`/../../../../
 GO=GOPATH=$(GOPATH) go
-BIN=$(GOPATH)bin/cyanite
+BIN=$(GOPATH)bin/mineshaft
 
 OK_COLOR=\033[32;01m
 NO_COLOR=\033[0m
@@ -13,9 +13,9 @@ build:
 
 run: build
 	@echo "$(OK_COLOR)==>$(NO_COLOR) Running"
-	$(BIN) -f=cyanite.conf
+	$(BIN) -f=mineshaft.conf
 
 sync:
-	rsync -avzP --delete --exclude=.git --exclude=.DS_Store ../../../ matt.i.disqus.net:cyanite/src
+	rsync -avzP --delete --exclude=.git --exclude=.DS_Store ../../../ matt.i.disqus.net:mineshaft/src
 
 .PHONY: build run sync

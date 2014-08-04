@@ -1,8 +1,8 @@
 package carbon
 
 import (
-	"github.com/mattrobenolt/go-cyanite/metric"
-	"github.com/mattrobenolt/go-cyanite/store"
+	"github.com/mattrobenolt/mineshaft/metric"
+	"github.com/mattrobenolt/mineshaft/store"
 
 	"bufio"
 	"log"

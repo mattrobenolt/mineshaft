@@ -1,7 +1,7 @@
 package aggregate
 
 import (
-	"github.com/mattrobenolt/go-cyanite/metric"
+	"github.com/mattrobenolt/mineshaft/metric"
 	"github.com/vaughan0/go-ini"
 
 	"fmt"

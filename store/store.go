@@ -1,9 +1,9 @@
 package store
 
 import (
-	"github.com/mattrobenolt/go-cyanite/aggregate"
-	"github.com/mattrobenolt/go-cyanite/metric"
-	"github.com/mattrobenolt/go-cyanite/schema"
+	"github.com/mattrobenolt/mineshaft/aggregate"
+	"github.com/mattrobenolt/mineshaft/metric"
+	"github.com/mattrobenolt/mineshaft/schema"
 )
 
 type Storer interface {

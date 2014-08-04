@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/mattrobenolt/go-cyanite/store"
+	"github.com/mattrobenolt/mineshaft/store"
 
 	"fmt"
 	"log"
