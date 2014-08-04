@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/mattrobenolt/go-cyanite/aggregate"
+	"github.com/mattrobenolt/go-cyanite/api"
 	"github.com/mattrobenolt/go-cyanite/carbon"
 	"github.com/mattrobenolt/go-cyanite/config"
 	"github.com/mattrobenolt/go-cyanite/schema"
@@ -28,12 +29,13 @@ func main() {
 		Cluster:  conf.Store.Cluster,
 		Keyspace: conf.Store.Keyspace,
 	}
+	store.Register(s)
+	defer s.Close()
+
 	s.SetSchema(schema.LoadFile(conf.Store.Schema))
 	s.SetAggregation(aggregate.LoadFile(conf.Store.Aggregates))
 
-	listen := conf.Carbon.Host + ":" + conf.Carbon.Port
-	log.Println("Starting carbon on ", listen)
-	carbon.RegisterStore(s)
-	go carbon.ListenAndServe(listen)
+	go carbon.ListenAndServe(conf.Carbon.Host + ":" + conf.Carbon.Port)
+	go api.ListenAndServe(conf.Http.Host + ":" + conf.Http.Port)
 	select {}
 }

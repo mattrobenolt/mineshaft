@@ -51,25 +51,15 @@ func recv(c net.Conn) {
 			return
 		}
 		point.Timestamp = uint32(timestamp)
-		carbonStore.Set(point)
+		store.Get().Set(point)
 	}
-}
-
-var carbonStore store.Storer
-
-func RegisterStore(store store.Storer) {
-	if carbonStore != nil {
-		panic("carbon: store already set")
-	}
-	carbonStore = store
 }
 
 func ListenAndServe(addr string) error {
-	if carbonStore == nil {
+	if store.Get() == nil {
 		panic("carbon: store not set")
 	}
-	carbonStore.Init()
-	defer carbonStore.Close()
+	log.Println("Starting carbon on", addr)
 	l, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err

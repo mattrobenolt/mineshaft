@@ -13,3 +13,16 @@ type Storer interface {
 	Set(*metric.Point) error
 	Close()
 }
+
+var store Storer
+
+func Register(s Storer) {
+	if store == nil {
+		store = s
+		store.Init()
+	}
+}
+
+func Get() Storer {
+	return store
+}
