@@ -21,5 +21,8 @@ func New() *Point {
 }
 
 func Release(p *Point) {
+	p.Path = ""
+	p.Value = 0
+	p.Timestamp = 0
 	statsPool.Put(p)
 }
