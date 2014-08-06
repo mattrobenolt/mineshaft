@@ -3,11 +3,17 @@ package config
 import (
 	"github.com/vaughan0/go-ini"
 
-	"io"
+	"flag"
 	"log"
 	"os"
 	"strings"
 )
+
+var configPath = flag.String("f", "/etc/mineshaft/mineshaft.conf", "configuration file")
+
+func init() {
+	flag.Parse()
+}
 
 type Config struct {
 	Carbon struct {
@@ -30,8 +36,14 @@ type Config struct {
 	}
 }
 
-func Load(input io.Reader) *Config {
-	file, err := ini.Load(input)
+// Load an return a Config object by path
+func LoadFile(path string) *Config {
+	log.Println("loading config", path)
+	fp, err := os.Open(path)
+	if err != nil {
+		log.Fatal("config: ", err)
+	}
+	file, err := ini.Load(fp)
 	if err != nil {
 		panic(err)
 	}
@@ -49,10 +61,13 @@ func Load(input io.Reader) *Config {
 	return c
 }
 
-func LoadFile(path string) *Config {
-	file, err := os.Open(path)
-	if err != nil {
-		log.Fatal("config: ", err)
+// Open the global configuration file
+func Open() *Config {
+	if appConfig == nil {
+		appConfig = LoadFile(*configPath)
 	}
-	return Load(file)
+	return appConfig
 }
+
+// The global config
+var appConfig *Config

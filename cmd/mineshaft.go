@@ -8,21 +8,14 @@ import (
 	"github.com/mattrobenolt/mineshaft/schema"
 	"github.com/mattrobenolt/mineshaft/store"
 
-	"flag"
 	"log"
 	"runtime"
 )
 
-var configPath = flag.String("f", "/etc/mineshaft/mineshaft.conf", "configuration file")
-
-func init() {
-	flag.Parse()
-}
-
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	conf := config.LoadFile(*configPath)
+	conf := config.Open()
 	log.Println(conf)
 
 	s := &store.CassandraStore{
