@@ -79,7 +79,9 @@ func (d *CassandraDriver) Close() {
 
 func init() {
 	// Register this driver so it can be loaded
-	Register("cassandra", &CassandraDriver{})
+	d := &CassandraDriver{}
+	Register("cassandra", d)
+	Register("cass", d)
 }
 
 // Used for rounding counters

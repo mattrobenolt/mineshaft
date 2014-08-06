@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/mattrobenolt/mineshaft/aggregate"
+	"github.com/mattrobenolt/mineshaft/index"
 	"github.com/mattrobenolt/mineshaft/schema"
 	"github.com/mattrobenolt/mineshaft/store"
 	"github.com/vaughan0/go-ini"
@@ -33,15 +34,14 @@ type Config struct {
 		Aggregates string
 	}
 	Index struct {
-		Index string
-		Url   string
+		Connection *url.URL
 	}
 }
 
 func (c *Config) OpenStore() (*store.Store, error) {
 	// TODO(mattrobenolt) better error handling here instead of relying on panics
-	s := &store.Store{}
-	s.SetDriver(store.GetDriver(c.Store.Connection))
+	s := store.NewFromConnection(c.Store.Connection)
+	s.SetIndexer(index.NewFromConnection(c.Index.Connection))
 	s.SetSchema(schema.LoadFile(c.Store.Schema))
 	s.SetAggregation(aggregate.LoadFile(c.Store.Aggregates))
 	return s, nil
@@ -66,8 +66,7 @@ func LoadFile(path string) (*Config, error) {
 	c.Store.Connection, _ = url.Parse(file["store"]["connection"])
 	c.Store.Schema = file["store"]["schema"]
 	c.Store.Aggregates = file["store"]["aggregates"]
-	c.Index.Index = file["index"]["index"]
-	c.Index.Url = file["index"]["url"]
+	c.Index.Connection, _ = url.Parse(file["index"]["connection"])
 	return c, nil
 }
 

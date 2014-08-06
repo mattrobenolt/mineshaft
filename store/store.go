@@ -2,6 +2,7 @@ package store
 
 import (
 	"github.com/mattrobenolt/mineshaft/aggregate"
+	"github.com/mattrobenolt/mineshaft/index"
 	"github.com/mattrobenolt/mineshaft/metric"
 	"github.com/mattrobenolt/mineshaft/schema"
 
@@ -15,6 +16,7 @@ type Store struct {
 	driver      Driver
 	schema      *schema.Schema
 	aggregation *aggregate.Aggregation
+	index       *index.Store
 }
 
 func (s *Store) Set(p *metric.Point) error {
@@ -57,6 +59,10 @@ func (s *Store) SetAggregation(agg *aggregate.Aggregation) {
 	s.aggregation = agg
 }
 
+func (s *Store) SetIndexer(index *index.Store) {
+	s.index = index
+}
+
 type Driver interface {
 	Init(*url.URL) error
 	WriteToBucket(*metric.Point, *aggregate.Rule, *schema.Bucket) error
@@ -74,6 +80,11 @@ func GetDriver(url *url.URL) Driver {
 	}
 	d.Init(url)
 	return d
+}
+
+func NewFromConnection(url *url.URL) *Store {
+	d := GetDriver(url)
+	return &Store{driver: d}
 }
 
 var registry = make(map[string]Driver)
