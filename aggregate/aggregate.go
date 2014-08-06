@@ -12,10 +12,21 @@ import (
 	"regexp"
 )
 
+// Aggregation methods
+type Method int
+
+const (
+	MIN Method = iota
+	MAX
+	SUM
+	AVG
+	LAST
+)
+
 type Rule struct {
 	name    string
 	pattern *regexp.Regexp
-	method  AggregateFunc
+	Method  Method
 }
 
 func (r *Rule) String() string { return r.name }
@@ -27,21 +38,23 @@ type Aggregation struct {
 
 func (a *Aggregation) AddDefaultRule(method string) {
 	a.defaultRule = &Rule{
-		method: getMethod(method),
+		Method: getMethod(method),
 	}
 }
 
-func getMethod(method string) AggregateFunc {
+func getMethod(method string) Method {
 	switch method {
 	case "min":
-		return Min
+		return MIN
 	case "max":
-		return Max
+		return MAX
 	case "sum":
-		return Sum
+		return SUM
 	case "avg":
 	case "average":
-		return Avg
+		return AVG
+	case "last":
+		return LAST
 	}
 	panic(fmt.Sprintf("aggregate: Invalid method %s", method))
 }
@@ -51,7 +64,7 @@ func (a *Aggregation) AddRule(name, pattern, method string) {
 	rule := &Rule{
 		name:    name,
 		pattern: regexp.MustCompile(pattern),
-		method:  getMethod(method),
+		Method:  getMethod(method),
 	}
 	a.rules = append(a.rules, rule)
 }
@@ -63,40 +76,6 @@ func (a *Aggregation) Match(path string) *Rule {
 		}
 	}
 	return a.defaultRule
-}
-
-type AggregateFunc func([]*metric.Point) float64
-
-func Max(points []*metric.Point) float64 {
-	max := float64(0)
-	for _, p := range points {
-		if p.Value > max {
-			max = p.Value
-		}
-	}
-	return max
-}
-
-func Min(points []*metric.Point) float64 {
-	min := math.MaxFloat64
-	for _, p := range points {
-		if p.Value < min {
-			min = p.Value
-		}
-	}
-	return min
-}
-
-func Sum(points []*metric.Point) float64 {
-	total := float64(0)
-	for _, p := range points {
-		total += p.Value
-	}
-	return total
-}
-
-func Avg(points []*metric.Point) float64 {
-	return Sum(points) / float64(len(points))
 }
 
 func Load(input io.Reader) *Aggregation {
