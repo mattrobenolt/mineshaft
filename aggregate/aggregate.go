@@ -1,13 +1,11 @@
 package aggregate
 
 import (
-	"github.com/mattrobenolt/mineshaft/metric"
 	"github.com/vaughan0/go-ini"
 
 	"fmt"
 	"io"
 	"log"
-	"math"
 	"os"
 	"regexp"
 )
