@@ -116,7 +116,6 @@ func (s *CassandraStore) SetAggregation(agg *aggregate.Aggregation) {
 
 // Used for rounding counters
 const PRECISION float64 = 100000
-const BOTTOM int64 = math.MinInt64 / 2
 
 func toInt64(i float64) int64 {
 	return int64(i * PRECISION)
