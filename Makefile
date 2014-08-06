@@ -9,7 +9,7 @@ build:
 	@echo "$(OK_COLOR)==>$(NO_COLOR) Installing dependencies"
 	@$(GO) get -v ./...
 	@echo "$(OK_COLOR)==>$(NO_COLOR) Compiling"
-	@$(GO) build -o $(BIN) -v ./main.go
+	@$(GO) build -o $(BIN) -v cmd/mineshaft.go
 
 run: build
 	@echo "$(OK_COLOR)==>$(NO_COLOR) Running"
