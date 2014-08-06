@@ -10,7 +10,11 @@ import (
 	"strconv"
 )
 
-func recv(c net.Conn) {
+type Carbon struct {
+	*store.Store
+}
+
+func (s *Carbon) recv(c net.Conn) {
 	var (
 		scanner   *bufio.Scanner
 		point     = metric.New()
@@ -51,27 +55,26 @@ func recv(c net.Conn) {
 			return
 		}
 		point.Timestamp = uint32(timestamp)
-		store.Get().Set(point)
+		s.Store.Set(point)
 	}
 }
 
-func ListenAndServe(addr string) error {
-	if store.Get() == nil {
-		panic("carbon: store not set")
-	}
+func ListenAndServe(addr string, s *store.Store) error {
 	log.Println("Starting carbon on", addr)
+
 	l, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
 	}
 	defer l.Close()
+	c := &Carbon{s}
 	for {
 		conn, err := l.Accept()
 		if err != nil {
 			log.Println(err)
 			continue
 		}
-		go recv(conn)
+		go c.recv(conn)
 	}
 	panic("lol")
 }

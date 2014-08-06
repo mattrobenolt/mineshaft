@@ -32,10 +32,10 @@ func Metrics(w http.ResponseWriter, r *http.Request) {
 	}`, r.URL.Query().Get("from"), r.URL.Query().Get("to"), r.URL.Query().Get("path"))
 }
 
-func ListenAndServe(addr string) error {
-	if store.Get() == nil {
-		panic("api: store not set")
-	}
+var appStore *store.Store
+
+func ListenAndServe(addr string, s *store.Store) error {
+	appStore = s
 	log.Println("Starting api on", addr)
 
 	http.HandleFunc("/ping/", Ping)

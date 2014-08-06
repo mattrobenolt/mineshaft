@@ -7,32 +7,25 @@ import (
 	"github.com/mattrobenolt/mineshaft/schema"
 
 	"errors"
-	"log"
 	"math"
-	"sync"
-	"time"
+	"net/url"
+	"strings"
 )
 
-type CassandraStore struct {
-	Cluster  []string
-	Keyspace string
-
+type CassandraDriver struct {
 	session     *gocql.Session
 	schema      *schema.Schema
 	aggregation *aggregate.Aggregation
 }
 
-func (s *CassandraStore) Init() {
-	var err error
-	cluster := gocql.NewCluster(s.Cluster...)
-	cluster.Keyspace = s.Keyspace
-	s.session, err = cluster.CreateSession()
-	if err != nil {
-		log.Fatal(err)
-	}
+func (d *CassandraDriver) Init(url *url.URL) (err error) {
+	cluster := gocql.NewCluster(strings.Split(url.Host, ",")...)
+	cluster.Keyspace = url.Path[1:]
+	d.session, err = cluster.CreateSession()
+	return err
 }
 
-func (s *CassandraStore) writeToBucket(p *metric.Point, agg *aggregate.Rule, b *schema.Bucket) error {
+func (d *CassandraDriver) WriteToBucket(p *metric.Point, agg *aggregate.Rule, b *schema.Bucket) error {
 	age := int(b.Ttl.Seconds())
 	path := p.Path
 	rollup := int(b.Rollup.Seconds())
@@ -46,7 +39,7 @@ func (s *CassandraStore) writeToBucket(p *metric.Point, agg *aggregate.Rule, b *
 		if timestamp <= 0 {
 			return errors.New("store: value too small")
 		}
-		return s.session.Query(
+		return d.session.Query(
 			MINMAX_UPDATE,
 			age, timestamp, value, rollup, period, path, time,
 		).Exec()
@@ -55,22 +48,22 @@ func (s *CassandraStore) writeToBucket(p *metric.Point, agg *aggregate.Rule, b *
 		if timestamp <= 0 {
 			return errors.New("store: value too small")
 		}
-		return s.session.Query(
+		return d.session.Query(
 			MINMAX_UPDATE,
 			age, timestamp, value, rollup, period, path, time,
 		).Exec()
 	case aggregate.SUM:
-		return s.session.Query(
+		return d.session.Query(
 			SUM_UPDATE,
 			age, toInt64(value), rollup, period, path, time,
 		).Exec()
 	case aggregate.AVG:
-		return s.session.Query(
+		return d.session.Query(
 			AVG_UPDATE,
 			age, toInt64(value), rollup, period, path, time,
 		).Exec()
 	case aggregate.LAST:
-		return s.session.Query(
+		return d.session.Query(
 			LAST_UPDATE,
 			age, value, rollup, period, path, time,
 		).Exec()
@@ -78,40 +71,15 @@ func (s *CassandraStore) writeToBucket(p *metric.Point, agg *aggregate.Rule, b *
 	panic("souldn't get here. ever.")
 }
 
-func (s *CassandraStore) Set(p *metric.Point) error {
-	start := time.Now()
-	buckets := s.schema.Match(p.Path).Buckets
-	agg := s.aggregation.Match(p.Path)
-	defer func() {
-		log.Println(p, buckets, agg, time.Now().Sub(start))
-	}()
-	var wg sync.WaitGroup
-	for _, bucket := range buckets {
-		wg.Add(1)
-		go func(bucket *schema.Bucket) {
-			err := s.writeToBucket(p, agg, bucket)
-			if err != nil {
-				log.Println(err)
-			}
-			wg.Done()
-		}(bucket)
-	}
-	wg.Wait()
-	return nil
-}
-
-func (s *CassandraStore) Close() {
-	if s.session != nil {
-		s.session.Close()
+func (d *CassandraDriver) Close() {
+	if d.session != nil {
+		d.session.Close()
 	}
 }
 
-func (s *CassandraStore) SetSchema(schema *schema.Schema) {
-	s.schema = schema
-}
-
-func (s *CassandraStore) SetAggregation(agg *aggregate.Aggregation) {
-	s.aggregation = agg
+func init() {
+	// Register this driver so it can be loaded
+	Register("cassandra", &CassandraDriver{})
 }
 
 // Used for rounding counters
