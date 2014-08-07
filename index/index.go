@@ -27,7 +27,10 @@ func GetDriver(url *url.URL) Driver {
 	if !ok {
 		panic("index: driver not found")
 	}
-	d.Init(url)
+	err := d.Init(url)
+	if err != nil {
+		panic(err)
+	}
 	return d
 }
 
