@@ -8,6 +8,10 @@ type Store struct {
 	driver Driver
 }
 
+func (s *Store) Update(path string) error {
+	return s.driver.Update(path)
+}
+
 type Driver interface {
 	Init(*url.URL) error
 	Update(string) error
