@@ -93,12 +93,18 @@ var schema = map[string]interface{}{
 		},
 	},
 	"mappings": map[string]interface{}{
-		"doc": map[string]interface{}{
+		"path": map[string]interface{}{
 			"properties": map[string]interface{}{
 				"Key": map[string]string{
 					"type":            "string",
 					"index_analyzer":  "mineshaft-analyzer",
 					"search_analyzer": "keyword",
+				},
+				"Depth": map[string]string{
+					"type": "integer",
+				},
+				"Leaf": map[string]string{
+					"type": "boolean",
 				},
 			},
 		},
