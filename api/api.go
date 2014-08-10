@@ -8,8 +8,11 @@ import (
 	"net/http"
 )
 
+// Simple health check endpoint to determine
+// if mineshaft is up and able to talk to services
+// it depends on.
 func Ping(w http.ResponseWriter, r *http.Request) {
-	if !appStore.Ping() {
+	if appStore == nil || !appStore.Ping() {
 		w.WriteHeader(http.StatusServiceUnavailable)
 		fmt.Fprintf(w, `{"status":%d,"errors":[]}`, http.StatusServiceUnavailable)
 	} else {
