@@ -77,6 +77,12 @@ func (d *CassandraDriver) Close() {
 	}
 }
 
+func (d *CassandraDriver) Ping() error {
+	// TODO(mattrobeolt): Not sure if this is even too relevant
+	// because the entire cluster would have to be down.
+	return nil
+}
+
 func init() {
 	// Register this driver so it can be loaded
 	d := &CassandraDriver{}

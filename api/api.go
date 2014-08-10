@@ -9,8 +9,14 @@ import (
 )
 
 func Ping(w http.ResponseWriter, r *http.Request) {
+	if !appStore.Ping() {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Write([]byte(fmt.Sprintf(`{"status":%d,"errors":[]}`, http.StatusServiceUnavailable)))
+	} else {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(fmt.Sprintf(`{"status":%d,"errors":[]}`, http.StatusOK)))
+	}
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte("{}"))
 }
 
 func Paths(w http.ResponseWriter, r *http.Request) {

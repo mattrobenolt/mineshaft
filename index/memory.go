@@ -20,6 +20,10 @@ func (d *MemoryDriver) Close() {
 	return
 }
 
+func (d *MemoryDriver) Ping() error {
+	return nil
+}
+
 func init() {
 	Register("memory", &MemoryDriver{})
 }

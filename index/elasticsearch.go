@@ -4,14 +4,16 @@ import (
 	set "github.com/deckarep/golang-set"
 	elastigo "github.com/mattbaird/elastigo/lib"
 
+	"errors"
 	"log"
 	"net/url"
 	"strings"
 )
 
 type ElasticSearchDriver struct {
-	conn  *elastigo.BulkIndexer
-	index string
+	conn    *elastigo.Conn
+	indexer *elastigo.BulkIndexer
+	index   string
 
 	cache set.Set
 }
@@ -29,9 +31,10 @@ func (d *ElasticSearchDriver) Init(url *url.URL) (err error) {
 		}
 		log.Println("ok.")
 	}
+	d.conn = conn
 	d.cache = set.NewThreadUnsafeSet()
-	d.conn = conn.NewBulkIndexer(10)
-	d.conn.Start()
+	d.indexer = d.conn.NewBulkIndexer(10)
+	d.indexer.Start()
 	return nil
 }
 
@@ -51,7 +54,7 @@ func (d *ElasticSearchDriver) Update(path string) error {
 		p.Depth = depth
 		p.Leaf = leaf
 		// ignoring errors for now
-		d.conn.Index(d.index, "path", p.Key, "", nil, p, false)
+		d.indexer.Index(d.index, "path", p.Key, "", nil, p, false)
 		end = strings.LastIndex(path, ".")
 		depth--
 		leaf = false
@@ -61,6 +64,14 @@ func (d *ElasticSearchDriver) Update(path string) error {
 
 func (d *ElasticSearchDriver) Close() {
 	return
+}
+
+func (d *ElasticSearchDriver) Ping() error {
+	if d.conn == nil || d.indexer == nil {
+		return errors.New("elasticsearch: uninitialized")
+	}
+	_, err := d.conn.DoCommand("HEAD", "/"+d.index, nil, nil)
+	return err
 }
 
 func init() {

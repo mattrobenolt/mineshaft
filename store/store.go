@@ -57,6 +57,18 @@ func (s *Store) Close() {
 	}
 }
 
+func (s *Store) Ping() bool {
+	if err := s.index.Ping(); err != nil {
+		log.Println(err)
+		return false
+	}
+	if err := s.driver.Ping(); err != nil {
+		log.Println(err)
+		return false
+	}
+	return true
+}
+
 func (s *Store) SetDriver(driver Driver) {
 	s.driver = driver
 }
@@ -76,6 +88,7 @@ func (s *Store) SetIndexer(index *index.Store) {
 type Driver interface {
 	Init(*url.URL) error
 	WriteToBucket(*metric.Point, *aggregate.Rule, *schema.Bucket) error
+	Ping() error
 	Close()
 }
 

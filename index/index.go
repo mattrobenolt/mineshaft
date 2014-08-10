@@ -12,9 +12,14 @@ func (s *Store) Update(path string) error {
 	return s.driver.Update(path)
 }
 
+func (s *Store) Ping() error {
+	return s.driver.Ping()
+}
+
 type Driver interface {
 	Init(*url.URL) error
 	Update(string) error
+	Ping() error
 	Close()
 }
 
