@@ -15,7 +15,10 @@ run: build
 	@echo "$(OK_COLOR)==>$(NO_COLOR) Running"
 	$(BIN) -f=mineshaft.conf
 
+test:
+	$(GO) test -v ./...
+
 sync:
 	rsync -avzP --delete --exclude=.git --exclude=.DS_Store ../../../ matt.i.disqus.net:mineshaft/src
 
-.PHONY: build run sync
+.PHONY: build run test sync
