@@ -28,7 +28,7 @@ func (s *Store) Set(p *metric.Point) error {
 	// Log the response time
 	start := time.Now()
 	defer func() {
-		log.Println("store/store: ", p, buckets, agg, time.Now().Sub(start))
+		log.Println("store/store:", p, buckets, agg, time.Now().Sub(start))
 	}()
 
 	go func() {
@@ -41,7 +41,7 @@ func (s *Store) Set(p *metric.Point) error {
 		go func(bucket *schema.Bucket) {
 			err := s.driver.WriteToBucket(p, agg, bucket)
 			if err != nil {
-				log.Println("store/store: ", p, agg, bucket, err)
+				log.Println("store/store:", p, agg, bucket, err)
 			}
 			wg.Done()
 		}(bucket)
