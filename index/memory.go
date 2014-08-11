@@ -16,6 +16,10 @@ func (d *MemoryDriver) Update(path string) error {
 	return nil
 }
 
+func (d *MemoryDriver) GetChildren(path string) []Path {
+	return nil
+}
+
 func (d *MemoryDriver) Close() {
 	return
 }

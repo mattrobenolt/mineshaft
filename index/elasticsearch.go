@@ -4,6 +4,7 @@ import (
 	set "github.com/deckarep/golang-set"
 	elastigo "github.com/mattbaird/elastigo/lib"
 
+	"encoding/json"
 	"errors"
 	"log"
 	"net/url"
@@ -62,6 +63,38 @@ func (d *ElasticSearchDriver) Update(path string) error {
 	return nil
 }
 
+func (d *ElasticSearchDriver) GetChildren(path string) []Path {
+	p := NewBranch(path)
+	query := map[string]interface{}{
+		"query": map[string]interface{}{
+			"bool": map[string]interface{}{
+				"must": []interface{}{
+					map[string]interface{}{
+						"wildcard": map[string]interface{}{
+							"path.Key": p.Key + ".*",
+						},
+					},
+					map[string]interface{}{
+						"term": map[string]int{
+							"path.Depth": p.Depth + 1,
+						},
+					},
+				},
+			},
+		},
+	}
+	resp, err := d.conn.Search(d.index, "path", nil, query)
+	if err != nil {
+		log.Println("index/elasticsearch:", err)
+		return nil
+	}
+	results := make([]Path, len(resp.Hits.Hits))
+	for i, hit := range resp.Hits.Hits {
+		json.Unmarshal(*hit.Source, &results[i])
+	}
+	return results
+}
+
 func (d *ElasticSearchDriver) Close() {
 	return
 }
@@ -78,12 +111,6 @@ func init() {
 	d := &ElasticSearchDriver{}
 	Register("elasticsearch", d)
 	Register("es", d)
-}
-
-type Path struct {
-	Key   string
-	Depth int
-	Leaf  bool
 }
 
 var schema = map[string]interface{}{

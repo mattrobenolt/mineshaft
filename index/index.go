@@ -2,6 +2,7 @@ package index
 
 import (
 	"net/url"
+	"strings"
 )
 
 type Store struct {
@@ -16,9 +17,36 @@ func (s *Store) Ping() error {
 	return s.driver.Ping()
 }
 
+func (s *Store) GetChildren(path string) []Path {
+	return s.driver.GetChildren(path)
+}
+
+type Path struct {
+	Key   string
+	Depth int
+	Leaf  bool
+}
+
+func NewLeaf(path string) Path {
+	return Path{
+		Key:   path,
+		Depth: strings.Count(path, "."),
+		Leaf:  true,
+	}
+}
+
+func NewBranch(path string) Path {
+	return Path{
+		Key:   path,
+		Depth: strings.Count(path, "."),
+		Leaf:  false,
+	}
+}
+
 type Driver interface {
 	Init(*url.URL) error
 	Update(string) error
+	GetChildren(string) []Path
 	Ping() error
 	Close()
 }
