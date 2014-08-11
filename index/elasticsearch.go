@@ -95,7 +95,7 @@ func (d *ElasticSearchDriver) QueryPaths(paths string) ([]Path, error) {
 			"regexp": map[string]interface{}{
 				"path.Key": map[string]interface{}{
 					"value": queryToES(q),
-					"flags": "ALL",
+					"flags": "INTERVAL",
 				},
 			},
 		}
