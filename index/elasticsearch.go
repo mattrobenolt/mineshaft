@@ -91,6 +91,46 @@ func (d *ElasticSearchDriver) GetChildren(path string) ([]Path, error) {
 	return hitsToPaths(resp.Hits), nil
 }
 
+func (d *ElasticSearchDriver) QueryPaths(paths string) ([]Path, error) {
+	var where map[string]interface{}
+	if isRegexp(paths) {
+		where = map[string]interface{}{
+			"regexp": map[string]interface{}{
+				"path.Key": map[string]interface{}{
+					"value": paths,
+					"flags": "ALL",
+				},
+			},
+		}
+	} else {
+		where = map[string]interface{}{
+			"term": map[string]string{
+				"path.Key": paths,
+			},
+		}
+	}
+	query := map[string]interface{}{
+		"query": map[string]interface{}{
+			"bool": map[string]interface{}{
+				"must": []interface{}{
+					where,
+					map[string]interface{}{
+						"term": map[string]bool{
+							"path.Leaf": true,
+						},
+					},
+				},
+			},
+		},
+	}
+	resp, err := d.conn.Search(d.index, "path", nil, query)
+	if err != nil {
+		log.Println("index/elasticsearch:", err)
+		return nil, err
+	}
+	return hitsToPaths(resp.Hits), nil
+}
+
 func (d *ElasticSearchDriver) Close() {
 	return
 }
@@ -109,6 +149,16 @@ func hitsToPaths(hits elastigo.Hits) []Path {
 		json.Unmarshal(*hit.Source, &paths[i])
 	}
 	return paths
+}
+
+func isRegexp(query string) bool {
+	for _, c := range query {
+		switch c {
+		case '[', '{', '*', '<':
+			return true
+		}
+	}
+	return false
 }
 
 func init() {

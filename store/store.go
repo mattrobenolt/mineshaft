@@ -89,6 +89,10 @@ func (s *Store) GetChildren(path string) ([]index.Path, error) {
 	return s.index.GetChildren(path)
 }
 
+func (s *Store) QueryPaths(query string) ([]index.Path, error) {
+	return s.index.QueryPaths(query)
+}
+
 type Driver interface {
 	Init(*url.URL) error
 	WriteToBucket(*metric.Point, *aggregate.Rule, *schema.Bucket) error

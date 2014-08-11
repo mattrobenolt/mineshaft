@@ -1,7 +1,6 @@
 package api
 
 import (
-	"github.com/mattrobenolt/mineshaft/index"
 	"github.com/mattrobenolt/mineshaft/store"
 
 	"encoding/json"
@@ -59,10 +58,10 @@ func Paths(w http.ResponseWriter, r *http.Request) {
 		invalidRequest(w)
 		return
 	}
-	log.Println("api:", query)
-	// appStore.GetChildren()
-	resp := []index.Path{
-		index.NewLeaf(query),
+	resp, err := appStore.QueryPaths(query)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	jsonResponse(w, resp, http.StatusOK)
 }
