@@ -89,8 +89,8 @@ func (s *Store) GetChildren(path string) ([]index.Path, error) {
 	return s.index.GetChildren(path)
 }
 
-func (s *Store) QueryPaths(query string) ([]index.Path, error) {
-	return s.index.QueryPaths(query)
+func (s *Store) QueryIndex(query string) ([]index.Path, error) {
+	return s.index.Query(query)
 }
 
 type Driver interface {

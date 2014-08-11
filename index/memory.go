@@ -20,7 +20,7 @@ func (d *MemoryDriver) GetChildren(path string) ([]Path, error) {
 	return nil, nil
 }
 
-func (d *MemoryDriver) QueryPaths(path string) ([]Path, error) {
+func (d *MemoryDriver) Query(path string) ([]Path, error) {
 	return nil, nil
 }
 

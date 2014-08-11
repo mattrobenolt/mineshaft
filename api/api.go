@@ -58,7 +58,7 @@ func Paths(w http.ResponseWriter, r *http.Request) {
 		invalidRequest(w)
 		return
 	}
-	resp, err := appStore.QueryPaths(query)
+	resp, err := appStore.QueryIndex(query)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

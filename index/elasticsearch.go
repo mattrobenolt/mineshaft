@@ -88,8 +88,8 @@ func (d *ElasticSearchDriver) GetChildren(path string) ([]Path, error) {
 	return hitsToPaths(resp.Hits), nil
 }
 
-func (d *ElasticSearchDriver) QueryPaths(paths string) ([]Path, error) {
-	q := StringToQuery(paths)
+func (d *ElasticSearchDriver) Query(path string) ([]Path, error) {
+	q := StringToQuery(path)
 	var where map[string]interface{}
 	if q.Method == REGEXP {
 		where = map[string]interface{}{
@@ -103,7 +103,7 @@ func (d *ElasticSearchDriver) QueryPaths(paths string) ([]Path, error) {
 	} else {
 		where = map[string]interface{}{
 			"term": map[string]string{
-				"path.Key": paths,
+				"path.Key": path,
 			},
 		}
 	}

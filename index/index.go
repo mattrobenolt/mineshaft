@@ -21,8 +21,8 @@ func (s *Store) GetChildren(path string) ([]Path, error) {
 	return s.driver.GetChildren(path)
 }
 
-func (s *Store) QueryPaths(path string) ([]Path, error) {
-	return s.driver.QueryPaths(path)
+func (s *Store) Query(path string) ([]Path, error) {
+	return s.driver.Query(path)
 }
 
 type Path struct {
@@ -51,7 +51,7 @@ type Driver interface {
 	Init(*url.URL) error
 	Update(string) error
 	GetChildren(string) ([]Path, error)
-	QueryPaths(string) ([]Path, error)
+	Query(string) ([]Path, error)
 	Ping() error
 	Close()
 }
