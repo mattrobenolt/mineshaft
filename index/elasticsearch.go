@@ -67,19 +67,13 @@ func (d *ElasticSearchDriver) GetChildren(path string) ([]Path, error) {
 	branch := NewBranch(path)
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"must": []interface{}{
-					map[string]interface{}{
-						"wildcard": map[string]interface{}{
-							"path.Key": branch.Key + ".*",
-						},
-					},
-					map[string]interface{}{
-						"term": map[string]int{
-							"path.Depth": branch.Depth + 1,
-						},
-					},
-				},
+			"wildcard": map[string]interface{}{
+				"path.Key": branch.Key + ".*",
+			},
+		},
+		"filter": map[string]interface{}{
+			"term": map[string]int{
+				"path.Depth": branch.Depth + 1,
 			},
 		},
 	}
@@ -92,6 +86,7 @@ func (d *ElasticSearchDriver) GetChildren(path string) ([]Path, error) {
 }
 
 func (d *ElasticSearchDriver) QueryPaths(paths string) ([]Path, error) {
+	// TODO: convert graphite query syntax into a real regular expression
 	var where map[string]interface{}
 	if isRegexp(paths) {
 		where = map[string]interface{}{
@@ -111,12 +106,23 @@ func (d *ElasticSearchDriver) QueryPaths(paths string) ([]Path, error) {
 	}
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"must": []interface{}{
-					where,
-					map[string]interface{}{
-						"term": map[string]bool{
-							"path.Leaf": true,
+			"filtered": map[string]interface{}{
+				"query": where,
+				"filter": map[string]interface{}{
+					"bool": map[string]interface{}{
+						"must": []map[string]interface{}{
+							map[string]interface{}{
+								"term": map[string]bool{
+									"path.Leaf": true,
+								},
+							},
+							// TODO: Need to calculate the depth
+							// of the query
+							// map[string]interface{}{
+							// 	"term": map[string]int{
+							// 		"path.Depth": 3,
+							// 	},
+							// },
 						},
 					},
 				},
