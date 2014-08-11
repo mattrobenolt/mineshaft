@@ -18,7 +18,4 @@ run: build
 test:
 	$(GO) test -v ./...
 
-sync:
-	rsync -avzP --delete --exclude=.git --exclude=.DS_Store ../../../ matt.i.disqus.net:mineshaft/src
-
-.PHONY: build run test sync
+.PHONY: build run test
