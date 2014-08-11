@@ -6,6 +6,7 @@ import (
 
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/url"
 	"strings"
@@ -87,12 +88,13 @@ func (d *ElasticSearchDriver) GetChildren(path string) ([]Path, error) {
 
 func (d *ElasticSearchDriver) QueryPaths(paths string) ([]Path, error) {
 	// TODO: convert graphite query syntax into a real regular expression
+	q := StringToQuery(paths)
 	var where map[string]interface{}
-	if isRegexp(paths) {
+	if q.Method == REGEXP {
 		where = map[string]interface{}{
 			"regexp": map[string]interface{}{
 				"path.Key": map[string]interface{}{
-					"value": paths,
+					"value": queryToES(q),
 					"flags": "ALL",
 				},
 			},
@@ -116,19 +118,19 @@ func (d *ElasticSearchDriver) QueryPaths(paths string) ([]Path, error) {
 									"path.Leaf": true,
 								},
 							},
-							// TODO: Need to calculate the depth
-							// of the query
-							// map[string]interface{}{
-							// 	"term": map[string]int{
-							// 		"path.Depth": 3,
-							// 	},
-							// },
+							map[string]interface{}{
+								"term": map[string]int{
+									"path.Depth": len(q.Paths) - 1,
+								},
+							},
 						},
 					},
 				},
 			},
 		},
 	}
+	js, _ := json.Marshal(query)
+	log.Println(string(js))
 	resp, err := d.conn.Search(d.index, "path", nil, query)
 	if err != nil {
 		log.Println("index/elasticsearch:", err)
@@ -171,6 +173,30 @@ func init() {
 	d := &ElasticSearchDriver{}
 	Register("elasticsearch", d)
 	Register("es", d)
+}
+
+func queryToES(q *Query) string {
+	out := ""
+	for i, p := range q.Paths {
+		if i != 0 {
+			out += "\\."
+		}
+		for _, c := range p {
+			switch c.code {
+			case STRING:
+				out += fmt.Sprintf("%s", c.value)
+			case ANY:
+				out += "[^.]+"
+			case RANGE:
+				out += fmt.Sprintf("<%c-%c>", c.value[0], c.value[1])
+			case ANY_ONE:
+				out += "."
+			case OR:
+				out += fmt.Sprintf("(%s)", strings.Replace(string(c.value), ",", "|", -1))
+			}
+		}
+	}
+	return out
 }
 
 var schema = map[string]interface{}{
