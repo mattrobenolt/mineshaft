@@ -78,6 +78,8 @@ func (d *ElasticSearchDriver) GetChildren(path string) ([]Path, error) {
 			},
 		},
 	}
+	js, _ := json.Marshal(query)
+	log.Println(string(js))
 	resp, err := d.conn.Search(d.index, "path", nil, query)
 	if err != nil {
 		log.Println("index/elasticsearch:", err)
