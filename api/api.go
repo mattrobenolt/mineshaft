@@ -65,15 +65,15 @@ func Paths(w http.ResponseWriter, r *http.Request) {
 		queries   = r.URL.Query()["query"]
 		received  = 0
 	)
-	for i, q := range queries {
-		go func(i int, q string) {
+	for _, q := range queries {
+		go func(q string) {
 			resp, err := appStore.QueryIndex(q)
 			if err != nil {
 				ch <- nil
 				return
 			}
 			ch <- resp
-		}(i, q)
+		}(q)
 	}
 	for {
 		resp := <-ch
