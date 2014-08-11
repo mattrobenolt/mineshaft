@@ -89,7 +89,6 @@ func (d *ElasticSearchDriver) GetChildren(path string) ([]Path, error) {
 }
 
 func (d *ElasticSearchDriver) QueryPaths(paths string) ([]Path, error) {
-	// TODO: convert graphite query syntax into a real regular expression
 	q := StringToQuery(paths)
 	var where map[string]interface{}
 	if q.Method == REGEXP {
