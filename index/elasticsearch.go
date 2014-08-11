@@ -63,20 +63,20 @@ func (d *ElasticSearchDriver) Update(path string) error {
 	return nil
 }
 
-func (d *ElasticSearchDriver) GetChildren(path string) []Path {
-	p := NewBranch(path)
+func (d *ElasticSearchDriver) GetChildren(path string) ([]Path, error) {
+	branch := NewBranch(path)
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
 			"bool": map[string]interface{}{
 				"must": []interface{}{
 					map[string]interface{}{
 						"wildcard": map[string]interface{}{
-							"path.Key": p.Key + ".*",
+							"path.Key": branch.Key + ".*",
 						},
 					},
 					map[string]interface{}{
 						"term": map[string]int{
-							"path.Depth": p.Depth + 1,
+							"path.Depth": branch.Depth + 1,
 						},
 					},
 				},
@@ -86,13 +86,13 @@ func (d *ElasticSearchDriver) GetChildren(path string) []Path {
 	resp, err := d.conn.Search(d.index, "path", nil, query)
 	if err != nil {
 		log.Println("index/elasticsearch:", err)
-		return nil
+		return nil, err
 	}
 	results := make([]Path, len(resp.Hits.Hits))
 	for i, hit := range resp.Hits.Hits {
 		json.Unmarshal(*hit.Source, &results[i])
 	}
-	return results
+	return results, nil
 }
 
 func (d *ElasticSearchDriver) Close() {

@@ -17,7 +17,7 @@ func (s *Store) Ping() error {
 	return s.driver.Ping()
 }
 
-func (s *Store) GetChildren(path string) []Path {
+func (s *Store) GetChildren(path string) ([]Path, error) {
 	return s.driver.GetChildren(path)
 }
 
@@ -46,7 +46,7 @@ func NewBranch(path string) Path {
 type Driver interface {
 	Init(*url.URL) error
 	Update(string) error
-	GetChildren(string) []Path
+	GetChildren(string) ([]Path, error)
 	Ping() error
 	Close()
 }

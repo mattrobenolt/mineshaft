@@ -10,8 +10,6 @@ import (
 	"net/http"
 )
 
-var EMPTY_RESPONSE = make([]index.Path, 0)
-
 func invalidRequest(w http.ResponseWriter) {
 	jsonResponse(w, "invalid request", http.StatusBadRequest)
 }
@@ -41,15 +39,15 @@ func Ping(w http.ResponseWriter, r *http.Request) {
 }
 
 func Children(w http.ResponseWriter, r *http.Request) {
-	// json
 	query := r.URL.Query().Get("query")
 	if query == "" {
 		invalidRequest(w)
 		return
 	}
-	resp := appStore.GetChildren(query)
-	if resp == nil {
-		resp = EMPTY_RESPONSE
+	resp, err := appStore.GetChildren(query)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	jsonResponse(w, resp, http.StatusOK)
 }

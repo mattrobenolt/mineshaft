@@ -85,7 +85,7 @@ func (s *Store) SetIndexer(index *index.Store) {
 	s.index = index
 }
 
-func (s *Store) GetChildren(path string) []index.Path {
+func (s *Store) GetChildren(path string) ([]index.Path, error) {
 	return s.index.GetChildren(path)
 }
 
