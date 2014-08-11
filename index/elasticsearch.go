@@ -88,11 +88,7 @@ func (d *ElasticSearchDriver) GetChildren(path string) ([]Path, error) {
 		log.Println("index/elasticsearch:", err)
 		return nil, err
 	}
-	results := make([]Path, len(resp.Hits.Hits))
-	for i, hit := range resp.Hits.Hits {
-		json.Unmarshal(*hit.Source, &results[i])
-	}
-	return results, nil
+	return HitsToPaths(resp.Hits), nil
 }
 
 func (d *ElasticSearchDriver) Close() {
@@ -105,6 +101,14 @@ func (d *ElasticSearchDriver) Ping() error {
 	}
 	_, err := d.conn.DoCommand("HEAD", "/"+d.index, nil, nil)
 	return err
+}
+
+func HitsToPaths(hits elastigo.Hits) []Path {
+	paths := make([]Path, hits.Total)
+	for i, hit := range hits.Hits {
+		json.Unmarshal(*hit.Source, &paths[i])
+	}
+	return paths
 }
 
 func init() {
