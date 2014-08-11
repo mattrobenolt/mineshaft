@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/mattrobenolt/mineshaft/index"
 	"github.com/mattrobenolt/mineshaft/store"
 
 	"encoding/json"
@@ -43,6 +44,7 @@ func Children(w http.ResponseWriter, r *http.Request) {
 		invalidRequest(w)
 		return
 	}
+
 	resp, err := appStore.GetChildren(query)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -53,17 +55,37 @@ func Children(w http.ResponseWriter, r *http.Request) {
 
 func Paths(w http.ResponseWriter, r *http.Request) {
 	log.Println("api:", r)
-	query := r.URL.Query().Get("query")
-	if query == "" {
+	if r.URL.Query().Get("query") == "" {
 		invalidRequest(w)
 		return
 	}
-	resp, err := appStore.QueryIndex(query)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	var (
+		collected = make([]index.Path, 0)
+		ch        = make(chan []index.Path)
+		queries   = r.URL.Query()["query"]
+		received  = 0
+	)
+	for i, q := range queries {
+		go func(i int, q string) {
+			resp, err := appStore.QueryIndex(q)
+			if err != nil {
+				ch <- nil
+				return
+			}
+			ch <- resp
+		}(i, q)
 	}
-	jsonResponse(w, resp, http.StatusOK)
+	for {
+		resp := <-ch
+		if resp != nil {
+			collected = append(collected, resp...)
+		}
+		received++
+		if received == len(queries) {
+			break
+		}
+	}
+	jsonResponse(w, collected, http.StatusOK)
 }
 
 func Metrics(w http.ResponseWriter, r *http.Request) {
