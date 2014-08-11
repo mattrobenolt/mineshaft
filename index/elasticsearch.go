@@ -154,7 +154,7 @@ func (d *ElasticSearchDriver) Ping() error {
 }
 
 func hitsToPaths(hits elastigo.Hits) []Path {
-	paths := make([]Path, hits.Total)
+	paths := make([]Path, len(hits.Hits))
 	for i, hit := range hits.Hits {
 		json.Unmarshal(*hit.Source, &paths[i])
 	}
