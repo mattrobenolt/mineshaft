@@ -1,7 +1,7 @@
 package index
 
 import (
-	"github.com/jmhodges/opposite_of_a_bloom_filter/go/oppobloom"
+	"github.com/golang/groupcache/lru"
 	elastigo "github.com/mattbaird/elastigo/lib"
 
 	"encoding/json"
@@ -17,7 +17,7 @@ type ElasticSearchDriver struct {
 	indexer *elastigo.BulkIndexer
 	index   string
 
-	filter *oppobloom.Filter
+	cache *lru.Cache
 }
 
 func (d *ElasticSearchDriver) Init(url *url.URL) (err error) {
@@ -34,16 +34,17 @@ func (d *ElasticSearchDriver) Init(url *url.URL) (err error) {
 		log.Println("ok.")
 	}
 	d.conn = conn
-	d.filter, _ = oppobloom.NewFilter(1 << 20)
+	d.cache = lru.New(100000)
 	d.indexer = d.conn.NewBulkIndexer(10)
 	d.indexer.Start()
 	return nil
 }
 
 func (d *ElasticSearchDriver) Update(path string) error {
-	if d.filter.Contains([]byte(path)) {
+	if _, ok := d.cache.Get(path); ok {
 		return nil
 	}
+	d.cache.Add(path, struct{}{})
 	end := len(path)
 	depth := strings.Count(path, ".")
 	leaf := true
