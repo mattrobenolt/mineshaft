@@ -1,6 +1,8 @@
 package set
 
 import (
+	"github.com/dustin/go-humanize"
+
 	"bufio"
 	"compress/gzip"
 	"container/list"
@@ -115,12 +117,12 @@ func (s *Set) load() {
 	}
 	defer reader.Close()
 	scanner := bufio.NewScanner(reader)
-	i := 0
+	i := int64(0)
 	for scanner.Scan() {
 		s.Add(scanner.Text())
 		i++
 	}
-	log.Println("index/lru: loaded", i, "keys from cache")
+	log.Println("index/lru: loaded", humanize.Comma(i), "keys from cache")
 	return
 }
 
@@ -132,7 +134,7 @@ func (s *Set) load() {
 func (s *Set) bgsave() {
 	writer := bufio.NewWriter(s.fp)
 	gzipper := gzip.NewWriter(writer)
-	i := 0
+	i := int64(0)
 	var e *list.Element
 	for {
 		time.Sleep(s.freq)
@@ -149,7 +151,7 @@ func (s *Set) bgsave() {
 		gzipper.Flush()
 		writer.Flush()
 		gzipper.Reset(writer)
-		log.Println("index/lru: flushed", i, "keys to disk")
+		log.Println("index/lru: flushed", humanize.Comma(i), "keys to disk")
 		i = 0
 	}
 }
