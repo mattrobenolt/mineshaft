@@ -133,6 +133,7 @@ func (s *Set) bgsave() {
 	writer := bufio.NewWriter(s.fp)
 	gzipper := gzip.NewWriter(writer)
 	i := 0
+	var e *list.Element
 	for {
 		time.Sleep(s.freq)
 		if !s.changed || s.Len() == 0 {
@@ -141,7 +142,7 @@ func (s *Set) bgsave() {
 		s.changed = false
 		s.fp.Truncate(0)
 		s.fp.Seek(0, 0)
-		for e := s.ll.Back(); e != nil; e = e.Prev() {
+		for e = s.ll.Back(); e != nil; e = e.Prev() {
 			i++
 			gzipper.Write([]byte(e.Value.(string) + "\n"))
 		}
