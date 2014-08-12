@@ -1,8 +1,8 @@
 package index
 
 import (
-	set "github.com/deckarep/golang-set"
 	elastigo "github.com/mattbaird/elastigo/lib"
+	"github.com/willf/bloom"
 
 	"encoding/json"
 	"errors"
@@ -17,7 +17,7 @@ type ElasticSearchDriver struct {
 	indexer *elastigo.BulkIndexer
 	index   string
 
-	cache set.Set
+	filter *bloom.BloomFilter
 }
 
 func (d *ElasticSearchDriver) Init(url *url.URL) (err error) {
@@ -34,18 +34,16 @@ func (d *ElasticSearchDriver) Init(url *url.URL) (err error) {
 		log.Println("ok.")
 	}
 	d.conn = conn
-	d.cache = set.NewThreadUnsafeSet()
+	d.filter = bloom.NewWithEstimates(10000000, 0.001)
 	d.indexer = d.conn.NewBulkIndexer(10)
 	d.indexer.Start()
 	return nil
 }
 
 func (d *ElasticSearchDriver) Update(path string) error {
-	// Already did this, guys
-	if d.cache.Contains(path) {
+	if d.filter.TestAndAdd([]byte(path)) {
 		return nil
 	}
-	d.cache.Add(path)
 	end := len(path)
 	depth := strings.Count(path, ".")
 	leaf := true
