@@ -148,7 +148,7 @@ func (s *Set) bgsave() {
 		gzipper.Flush()
 		writer.Flush()
 		gzipper.Reset(writer)
-		i = 0
 		log.Println("index/lru: flushed", i, "keys to disk")
+		i = 0
 	}
 }
