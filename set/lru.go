@@ -141,7 +141,7 @@ func (s *Set) bgsave() {
 		s.changed = false
 		s.fp.Truncate(0)
 		s.fp.Seek(0, 0)
-		for e := s.ll.Front(); e != nil; e = e.Next() {
+		for e := s.ll.Back(); e != nil; e = e.Prev() {
 			i++
 			gzipper.Write([]byte(e.Value.(string) + "\n"))
 		}
