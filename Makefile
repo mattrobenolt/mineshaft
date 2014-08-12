@@ -1,21 +1,30 @@
 GOPATH=`pwd`/../../../../
-GO=GOPATH=$(GOPATH) go
-BIN=$(GOPATH)bin/mineshaft
+GOBIN=$(GOPATH)bin/
+GO=GOPATH=$(GOPATH) GOBIN=$(GOBIN) go
+APPS=\
+	mineshaft\
+	mineshaft-bench
 
 OK_COLOR=\033[32;01m
 NO_COLOR=\033[0m
 
 build:
-	@echo "$(OK_COLOR)==>$(NO_COLOR) Installing dependencies"
-	@$(GO) get -v ./...
-	@echo "$(OK_COLOR)==>$(NO_COLOR) Compiling"
-	@$(GO) build -o $(BIN) -v cmd/mineshaft.go
+	@for app in $(APPS); do \
+		echo "$(OK_COLOR)==>$(NO_COLOR) Building $${app}"; \
+		echo "$(OK_COLOR)==>$(NO_COLOR) Installing dependencies"; \
+		$(GO) get -v cmd/$${app}.go; \
+		echo "$(OK_COLOR)==>$(NO_COLOR) Compiling"; \
+		$(GO) install -v cmd/$${app}.go; \
+	done;
 
 run: build
 	@echo "$(OK_COLOR)==>$(NO_COLOR) Running"
-	$(BIN) -f=mineshaft.conf
+	$(GOBIN)mineshaft -f=mineshaft.conf
 
 test:
 	$(GO) test -v ./...
 
-.PHONY: build run test
+clean:
+	rm -rf $(GOBIN)*
+
+.PHONY: build run test clean
