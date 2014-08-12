@@ -1,8 +1,8 @@
 package index
 
 import (
+	"github.com/jmhodges/opposite_of_a_bloom_filter/go/oppobloom"
 	elastigo "github.com/mattbaird/elastigo/lib"
-	"github.com/willf/bloom"
 
 	"encoding/json"
 	"errors"
@@ -17,7 +17,7 @@ type ElasticSearchDriver struct {
 	indexer *elastigo.BulkIndexer
 	index   string
 
-	filter *bloom.BloomFilter
+	filter *oppobloom.Filter
 }
 
 func (d *ElasticSearchDriver) Init(url *url.URL) (err error) {
@@ -34,14 +34,14 @@ func (d *ElasticSearchDriver) Init(url *url.URL) (err error) {
 		log.Println("ok.")
 	}
 	d.conn = conn
-	d.filter = bloom.NewWithEstimates(10000000, 0.001)
+	d.filter, _ = oppobloom.NewFilter(1 << 20)
 	d.indexer = d.conn.NewBulkIndexer(10)
 	d.indexer.Start()
 	return nil
 }
 
 func (d *ElasticSearchDriver) Update(path string) error {
-	if d.filter.TestAndAdd([]byte(path)) {
+	if d.filter.Contains([]byte(path)) {
 		return nil
 	}
 	end := len(path)
