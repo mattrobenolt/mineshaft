@@ -58,7 +58,6 @@ func getMethod(method string) Method {
 }
 
 func (a *Aggregation) AddRule(name, pattern, method string) {
-	fmt.Println(name, pattern, method)
 	rule := &Rule{
 		name:    name,
 		pattern: regexp.MustCompile(pattern),

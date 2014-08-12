@@ -3,7 +3,6 @@ package schema
 import (
 	"github.com/vaughan0/go-ini"
 
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -51,7 +50,6 @@ func (s *Schema) AddDefaultRule(buckets string) {
 }
 
 func (s *Schema) AddRule(name, pattern, buckets string) {
-	fmt.Println(name, pattern, buckets)
 	rule := &Rule{
 		name:    name,
 		pattern: regexp.MustCompile(pattern),
@@ -96,7 +94,6 @@ func LoadFile(path string) *Schema {
 var defaultSchema = &Schema{}
 
 func parseTimeBuckets(buckets string) (bs []*Bucket) {
-	fmt.Println(buckets)
 	for _, b := range strings.Split(buckets, ",") {
 		pieces := strings.SplitN(b, ":", 2)[0:2]
 		rollup, ttl := toTime(pieces[0]), toTime(pieces[1])
@@ -105,7 +102,6 @@ func parseTimeBuckets(buckets string) (bs []*Bucket) {
 			Period: int(ttl / rollup),
 			Rollup: rollup,
 		}
-		fmt.Println(bucket)
 		bs = append(bs, bucket)
 	}
 	return
