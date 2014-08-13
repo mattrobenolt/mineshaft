@@ -16,11 +16,11 @@ func (d *MemoryDriver) Update(path string) error {
 	return nil
 }
 
-func (d *MemoryDriver) GetChildren(path string) ([]Path, error) {
+func (d *MemoryDriver) GetChildren(path string) ([]*Path, error) {
 	return nil, nil
 }
 
-func (d *MemoryDriver) Query(path string) ([]Path, error) {
+func (d *MemoryDriver) Query(path string) ([]*Path, error) {
 	return nil, nil
 }
 

@@ -10,6 +10,10 @@ type Point struct {
 	Timestamp uint32
 }
 
+func (p *Point) Release() {
+	Release(p)
+}
+
 type Points []*Point
 
 var statsPool = sync.Pool{

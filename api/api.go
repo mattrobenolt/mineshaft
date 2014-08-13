@@ -60,8 +60,8 @@ func Paths(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var (
-		collected = make([]index.Path, 0)
-		ch        = make(chan []index.Path)
+		collected = make([]*index.Path, 0)
+		ch        = make(chan []*index.Path)
 		queries   = r.URL.Query()["query"]
 		received  = 0
 	)

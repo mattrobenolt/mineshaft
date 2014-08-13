@@ -66,7 +66,8 @@ func (d *ElasticSearchDriver) Update(path string) error {
 	end := len(path)
 	depth := strings.Count(path, ".")
 	leaf := true
-	var p Path
+	p := NewPath()
+	defer p.Release()
 	for end > -1 {
 		path = path[0:end]
 		p.Key = path
@@ -81,8 +82,9 @@ func (d *ElasticSearchDriver) Update(path string) error {
 	return nil
 }
 
-func (d *ElasticSearchDriver) GetChildren(path string) ([]Path, error) {
+func (d *ElasticSearchDriver) GetChildren(path string) ([]*Path, error) {
 	branch := NewBranch(path)
+	defer branch.Release()
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
 			"wildcard": map[string]interface{}{
@@ -105,7 +107,7 @@ func (d *ElasticSearchDriver) GetChildren(path string) ([]Path, error) {
 	return hitsToPaths(resp.Hits), nil
 }
 
-func (d *ElasticSearchDriver) Query(path string) ([]Path, error) {
+func (d *ElasticSearchDriver) Query(path string) ([]*Path, error) {
 	q := StringToQuery(path)
 	var where map[string]interface{}
 	if q.Method == REGEXP {
@@ -170,8 +172,8 @@ func (d *ElasticSearchDriver) Ping() error {
 	return err
 }
 
-func hitsToPaths(hits elastigo.Hits) []Path {
-	paths := make([]Path, len(hits.Hits))
+func hitsToPaths(hits elastigo.Hits) []*Path {
+	paths := make([]*Path, len(hits.Hits))
 	for i, hit := range hits.Hits {
 		json.Unmarshal(*hit.Source, &paths[i])
 	}

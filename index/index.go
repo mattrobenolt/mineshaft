@@ -3,6 +3,7 @@ package index
 import (
 	"net/url"
 	"strings"
+	"sync"
 )
 
 type Store struct {
@@ -17,11 +18,11 @@ func (s *Store) Ping() error {
 	return s.driver.Ping()
 }
 
-func (s *Store) GetChildren(path string) ([]Path, error) {
+func (s *Store) GetChildren(path string) ([]*Path, error) {
 	return s.driver.GetChildren(path)
 }
 
-func (s *Store) Query(path string) ([]Path, error) {
+func (s *Store) Query(path string) ([]*Path, error) {
 	return s.driver.Query(path)
 }
 
@@ -31,27 +32,39 @@ type Path struct {
 	Leaf  bool
 }
 
-func NewLeaf(path string) Path {
-	return Path{
-		Key:   path,
-		Depth: strings.Count(path, "."),
-		Leaf:  true,
-	}
+func (p *Path) Release() {
+	pathPool.Put(p)
 }
 
-func NewBranch(path string) Path {
-	return Path{
-		Key:   path,
-		Depth: strings.Count(path, "."),
-		Leaf:  false,
-	}
+var pathPool = sync.Pool{
+	New: func() interface{} { return &Path{} },
+}
+
+func NewPath() *Path {
+	return pathPool.Get().(*Path)
+}
+
+func NewLeaf(path string) *Path {
+	p := NewPath()
+	p.Key = path
+	p.Depth = strings.Count(path, ".")
+	p.Leaf = true
+	return p
+}
+
+func NewBranch(path string) *Path {
+	p := NewPath()
+	p.Key = path
+	p.Depth = strings.Count(path, ".")
+	p.Leaf = false
+	return p
 }
 
 type Driver interface {
 	Init(*url.URL) error
 	Update(string) error
-	GetChildren(string) ([]Path, error)
-	Query(string) ([]Path, error)
+	GetChildren(string) ([]*Path, error)
+	Query(string) ([]*Path, error)
 	Ping() error
 	Close()
 }
