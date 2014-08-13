@@ -40,11 +40,6 @@ func Ping(w http.ResponseWriter, r *http.Request) {
 
 func Children(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("query")
-	if query == "" {
-		invalidRequest(w)
-		return
-	}
-
 	resp, err := appStore.GetChildren(query)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -83,20 +83,27 @@ func (d *ElasticSearchDriver) Update(path string) error {
 }
 
 func (d *ElasticSearchDriver) GetChildren(path string) ([]*Path, error) {
-	branch := NewBranch(path)
-	defer branch.Release()
+	var depth int
+	if path != "" {
+		depth = strings.Count(path, ".") + 1
+	}
+
 	query := map[string]interface{}{
-		"query": map[string]interface{}{
-			"wildcard": map[string]interface{}{
-				"path.Key": branch.Key + ".*",
-			},
-		},
 		"filter": map[string]interface{}{
 			"term": map[string]int{
-				"path.Depth": branch.Depth + 1,
+				"path.Depth": depth,
 			},
 		},
 	}
+
+	if depth > 0 {
+		query["query"] = map[string]interface{}{
+			"wildcard": map[string]interface{}{
+				"path.Key": path + ".*",
+			},
+		}
+	}
+
 	js, _ := json.Marshal(query)
 	log.Println(string(js))
 	resp, err := d.conn.Search(d.index, "path", nil, query)
