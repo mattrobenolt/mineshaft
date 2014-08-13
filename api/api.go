@@ -23,6 +23,8 @@ func jsonResponse(w http.ResponseWriter, data interface{}, status int) {
 	w.WriteHeader(status)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(js)
+	// Always kindly end in a newline
+	w.Write([]byte{'\n'})
 }
 
 // Simple health check endpoint to determine
