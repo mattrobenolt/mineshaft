@@ -6,6 +6,8 @@ import (
 	"github.com/mattrobenolt/mineshaft/metric"
 	"github.com/mattrobenolt/mineshaft/schema"
 
+	"database/sql"
+	"encoding/json"
 	"log"
 	"net/url"
 	"sync"
@@ -55,7 +57,7 @@ func (s *Store) GetRange(path string, from, to int) *schema.Range {
 	return s.schema.GetRange(path, from, to)
 }
 
-func (s *Store) Get(path string, from, to int) (*schema.Range, []float64) {
+func (s *Store) Get(path string, from, to int) (*schema.Range, []*NullFloat64) {
 	r := s.GetRange(path, from, to)
 	agg := s.aggregation.Match(path)
 	log.Println("store: range", r, "agg", agg)
@@ -107,7 +109,7 @@ func (s *Store) QueryIndex(query string) ([]*index.Path, error) {
 type Driver interface {
 	Init(*url.URL) error
 	WriteToBucket(*metric.Point, *aggregate.Rule, *schema.Bucket) error
-	Get(string, *schema.Range, *aggregate.Rule) []float64
+	Get(string, *schema.Range, *aggregate.Rule) []*NullFloat64
 	Ping() error
 	Close()
 }
@@ -134,3 +136,21 @@ func NewFromConnection(url *url.URL) *Store {
 }
 
 var registry = make(map[string]Driver)
+
+//NullFloat64 is a wrapper around sql.NullInt64 that satifies json.Marshaler
+type NullFloat64 struct {
+	sql.NullFloat64
+}
+
+//MarshalJSON is a wrapper around sql.NullFloat64 that satifies json.Marshaler
+func (nf *NullFloat64) MarshalJSON() ([]byte, error) {
+	var data interface{}
+
+	if !nf.Valid {
+		data = nil
+	} else {
+		data = nf.Float64
+	}
+
+	return json.Marshal(data)
+}

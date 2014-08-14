@@ -73,41 +73,53 @@ func (d *CassandraDriver) WriteToBucket(p *metric.Point, agg *aggregate.Rule, b 
 	panic("souldn't get here. ever.")
 }
 
-func (d *CassandraDriver) Get(path string, r *schema.Range, agg *aggregate.Rule) (series []float64) {
+func (d *CassandraDriver) Get(path string, r *schema.Range, agg *aggregate.Rule) (series []*NullFloat64) {
 	var iter *gocql.Iter
 
 	log.Println("num_buckets", r.Len())
-	series = make([]float64, r.Len())
+	series = make([]*NullFloat64, r.Len())
 
 	switch agg.Method {
 	case aggregate.MIN, aggregate.MAX, aggregate.LAST:
 		var data float64
 		var time int64
+		var i int
 		iter = d.session.Query(
 			MINMAXLAST_SELECT,
 			r.Rollup, r.Period, path, r.Lower, r.Upper,
 		).Consistency(gocql.One).Iter()
 		for iter.Scan(&data, &time) {
-			series[r.Index(time)] = data
+			i = r.Index(time)
+			series[i] = new(NullFloat64)
+			series[i].Float64 = data
+			series[i].Valid = true
 		}
 	case aggregate.SUM:
 		var data, time int64
+		var i int
 		iter = d.session.Query(
 			SUM_SELECT,
 			r.Rollup, r.Period, path, r.Lower, r.Upper,
 		).Consistency(gocql.One).Iter()
 		for iter.Scan(&data, &time) {
-			series[r.Index(time)] = toFloat64(data)
+			i = r.Index(time)
+			series[i] = new(NullFloat64)
+			series[i].Float64 = toFloat64(data)
+			series[i].Valid = true
 		}
 	case aggregate.AVG:
 		log.Println("querying avg")
 		var data, count, time int64
+		var i int
 		iter = d.session.Query(
 			AVG_SELECT,
 			r.Rollup, r.Period, path, r.Lower, r.Upper,
 		).Consistency(gocql.One).Iter()
 		for iter.Scan(&data, &count, &time) {
-			series[r.Index(time)] = toFloat64(data) / float64(count)
+			i = r.Index(time)
+			series[i] = new(NullFloat64)
+			series[i].Float64 = toFloat64(data) / float64(count)
+			series[i].Valid = true
 		}
 	default:
 		panic("lol nope")
