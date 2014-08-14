@@ -142,13 +142,8 @@ type NullFloat64 struct {
 }
 
 func (nf *NullFloat64) MarshalJSON() ([]byte, error) {
-	var data interface{}
-
 	if !nf.Valid {
-		data = nil
-	} else {
-		data = nf.Float64
+		return []byte("null"), nil
 	}
-
-	return json.Marshal(data)
+	return json.Marshal(nf.Float64)
 }
