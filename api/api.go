@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 func invalidRequest(w http.ResponseWriter) {
@@ -85,15 +86,47 @@ func Paths(w http.ResponseWriter, r *http.Request) {
 	jsonResponse(w, collected, http.StatusOK)
 }
 
-func Metrics(w http.ResponseWriter, r *http.Request) {
-	log.Println("api:", r)
-	w.Header().Set("Content-Type", "application/json")
-	fmt.Fprintf(w, `{
-		"from": %s,
-		"to": %s,
-		"step": 10,
-		"series": {"%s": []}
-	}`, r.URL.Query().Get("from"), r.URL.Query().Get("to"), r.URL.Query().Get("path"))
+func Metrics(w http.ResponseWriter, req *http.Request) {
+	log.Println("api:", req)
+	var (
+		err      error
+		to, from int
+		q        = req.URL.Query()
+		targets  = q["target"]
+	)
+
+	if len(targets) == 0 {
+		invalidRequest(w)
+		return
+	}
+
+	if from, err = strconv.Atoi(q.Get("from")); err != nil {
+		invalidRequest(w)
+		return
+	}
+
+	if to, err = strconv.Atoi(q.Get("to")); err != nil {
+		invalidRequest(w)
+		return
+	}
+
+	if from > to {
+		invalidRequest(w)
+		return
+	}
+
+	series := make(map[string]map[string]interface{})
+	for _, t := range targets {
+		r, data := appStore.Get(t, from, to)
+		series[t] = map[string]interface{}{
+			"from":   r.Lower,
+			"to":     r.Upper,
+			"step":   r.Rollup,
+			"series": data,
+		}
+	}
+
+	jsonResponse(w, series, http.StatusOK)
 }
 
 var appStore *store.Store

@@ -51,6 +51,17 @@ func (s *Store) Set(p *metric.Point) error {
 	return nil
 }
 
+func (s *Store) GetRange(path string, from, to int) *schema.Range {
+	return s.schema.GetRange(path, from, to)
+}
+
+func (s *Store) Get(path string, from, to int) (*schema.Range, []float64) {
+	r := s.GetRange(path, from, to)
+	agg := s.aggregation.Match(path)
+	log.Println("store: range", r, "agg", agg)
+	return r, s.driver.Get(path, r, agg)
+}
+
 func (s *Store) Close() {
 	if s.driver != nil {
 		s.driver.Close()
@@ -96,6 +107,7 @@ func (s *Store) QueryIndex(query string) ([]*index.Path, error) {
 type Driver interface {
 	Init(*url.URL) error
 	WriteToBucket(*metric.Point, *aggregate.Rule, *schema.Bucket) error
+	Get(string, *schema.Range, *aggregate.Rule) []float64
 	Ping() error
 	Close()
 }

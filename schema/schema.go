@@ -67,6 +67,45 @@ func (s *Schema) Match(path string) *Rule {
 	return s.defaultRule
 }
 
+func (s *Schema) GetRange(path string, from, to int) *Range {
+	buckets := s.Match(path).Buckets
+	log.Println(buckets)
+	duration := to - from
+	var bucket *Bucket
+	for _, b := range buckets {
+		if int(b.Ttl.Seconds()) > duration {
+			bucket = b
+			break
+		}
+	}
+	if bucket == nil {
+		// Just get the largest bucket
+		bucket = buckets[len(buckets)-1]
+	}
+	log.Println("schema:", bucket)
+	rollup := int(bucket.Rollup.Seconds())
+	return &Range{
+		Start:  uint32(from),
+		End:    uint32(to),
+		Lower:  roundDown(from, rollup),
+		Upper:  roundUp(to, rollup),
+		Period: bucket.Period,
+		Rollup: int(bucket.Rollup.Seconds()),
+	}
+}
+
+func roundDown(a, interval int) int {
+	return int(float64(a)/float64(interval)) * interval
+}
+
+func roundUp(a, interval int) int {
+	down := roundDown(a, interval)
+	if down < a {
+		return down + interval
+	}
+	return down
+}
+
 func Load(input io.Reader) *Schema {
 	file, err := ini.Load(input)
 	if err != nil {
@@ -128,4 +167,34 @@ func toTime(s string) time.Duration {
 		unit = 365 * 24 * time.Hour
 	}
 	return time.Duration(quantity) * unit
+}
+
+type Range struct {
+	Start, End     uint32
+	Lower, Upper   int
+	Period, Rollup int
+}
+
+func (r *Range) Duration() int {
+	return r.Upper - r.Lower
+}
+
+// How many Rollup intervals are within a Range
+func (r *Range) Len() int {
+	return r.Duration() / r.Rollup
+}
+
+// The index to a bucket within the range
+func (r *Range) Index(n int64) int {
+	// log.Println("n:", n)
+	// log.Println("r.Lower:", r.Lower)
+	// log.Println("r.Upper:", r.Upper)
+	if int(n) < r.Lower || int(n) > r.Upper {
+		return -1
+	}
+	lower := roundDown(int(n), r.Rollup) - r.Lower
+	// log.Println("lower:", lower)
+	i := lower / r.Rollup
+	// log.Println("i:", i)
+	return i
 }

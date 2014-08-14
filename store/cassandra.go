@@ -7,6 +7,7 @@ import (
 	"github.com/mattrobenolt/mineshaft/schema"
 
 	"errors"
+	"log"
 	"math"
 	"net/url"
 	"strings"
@@ -20,6 +21,7 @@ type CassandraDriver struct {
 
 func (d *CassandraDriver) Init(url *url.URL) (err error) {
 	cluster := gocql.NewCluster(strings.Split(url.Host, ",")...)
+	cluster.Consistency = gocql.One
 	cluster.Keyspace = url.Path[1:]
 	d.session, err = cluster.CreateSession()
 	return err
@@ -71,6 +73,52 @@ func (d *CassandraDriver) WriteToBucket(p *metric.Point, agg *aggregate.Rule, b 
 	panic("souldn't get here. ever.")
 }
 
+func (d *CassandraDriver) Get(path string, r *schema.Range, agg *aggregate.Rule) (series []float64) {
+	var iter *gocql.Iter
+
+	log.Println("num_buckets", r.Len())
+	series = make([]float64, r.Len())
+
+	switch agg.Method {
+	case aggregate.MIN, aggregate.MAX, aggregate.LAST:
+		var data float64
+		var time int64
+		iter = d.session.Query(
+			MINMAXLAST_SELECT,
+			r.Rollup, r.Period, path, r.Lower, r.Upper,
+		).Consistency(gocql.One).Iter()
+		for iter.Scan(&data, &time) {
+			series[r.Index(time)] = data
+		}
+	case aggregate.SUM:
+		var data, time int64
+		iter = d.session.Query(
+			SUM_SELECT,
+			r.Rollup, r.Period, path, r.Lower, r.Upper,
+		).Consistency(gocql.One).Iter()
+		for iter.Scan(&data, &time) {
+			series[r.Index(time)] = toFloat64(data)
+		}
+	case aggregate.AVG:
+		log.Println("querying avg")
+		var data, count, time int64
+		iter = d.session.Query(
+			AVG_SELECT,
+			r.Rollup, r.Period, path, r.Lower, r.Upper,
+		).Consistency(gocql.One).Iter()
+		for iter.Scan(&data, &count, &time) {
+			series[r.Index(time)] = toFloat64(data) / float64(count)
+		}
+	default:
+		panic("lol nope")
+	}
+	if err := iter.Close(); err != nil {
+		log.Fatal(err)
+		return nil
+	}
+	return
+}
+
 func (d *CassandraDriver) Close() {
 	if d.session != nil {
 		d.session.Close()
@@ -112,6 +160,7 @@ UPDATE sum USING TTL ?
 SET data = data + ?
 WHERE rollup = ? AND period = ? AND path = ? AND time = ?
 `
+
 const LAST_UPDATE = `
 UPDATE minmaxlast USING TTL ?
 SET data = ?
@@ -122,4 +171,22 @@ const MINMAX_UPDATE = `
 UPDATE minmaxlast USING TTL ? AND TIMESTAMP ?
 SET data = ?
 WHERE rollup = ? AND period = ? AND path = ? AND time = ?
+`
+
+const AVG_SELECT = `
+SELECT data, count, time
+FROM avg
+WHERE rollup = ? AND period = ? AND path = ? AND time >= ? AND time <= ?
+`
+
+const SUM_SELECT = `
+SELECT data, time
+FROM sum
+WHERE rollup = ? AND period = ? AND path = ? AND time >= ? AND time <= ?
+`
+
+const MINMAXLAST_SELECT = `
+SELECT data, time
+FROM minmaxlast
+WHERE rollup = ? AND period = ? AND path = ? AND time >= ? AND time <= ?
 `

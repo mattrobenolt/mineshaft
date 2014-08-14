@@ -12,7 +12,7 @@ build:
 	@for app in $(APPS); do \
 		echo "$(OK_COLOR)==>$(NO_COLOR) Building $${app}"; \
 		echo "$(OK_COLOR)==>$(NO_COLOR) Installing dependencies"; \
-		$(GO) get -v cmd/$${app}.go; \
+		$(GO) get -v ./...; \
 		echo "$(OK_COLOR)==>$(NO_COLOR) Compiling"; \
 		$(GO) install -v cmd/$${app}.go; \
 	done;
