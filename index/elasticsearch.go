@@ -89,6 +89,7 @@ func (d *ElasticSearchDriver) GetChildren(path string) ([]*Path, error) {
 	}
 
 	query := map[string]interface{}{
+		"size": 100000,
 		"filter": map[string]interface{}{
 			"term": map[string]int{
 				"path.Depth": depth,
@@ -134,6 +135,7 @@ func (d *ElasticSearchDriver) Query(path string) ([]*Path, error) {
 		}
 	}
 	query := map[string]interface{}{
+		"size": 1000,
 		"query": map[string]interface{}{
 			"filtered": map[string]interface{}{
 				"query": where,
