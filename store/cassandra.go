@@ -90,7 +90,7 @@ func (d *CassandraDriver) Get(path string, r *schema.Range, agg *aggregate.Rule)
 		).Consistency(gocql.One).Iter()
 		for iter.Scan(&data, &time) {
 			i = r.Index(time)
-			series[i] = new(NullFloat64)
+			series[i] = &NullFloat64{}
 			series[i].Float64 = data
 			series[i].Valid = true
 		}
@@ -103,7 +103,7 @@ func (d *CassandraDriver) Get(path string, r *schema.Range, agg *aggregate.Rule)
 		).Consistency(gocql.One).Iter()
 		for iter.Scan(&data, &time) {
 			i = r.Index(time)
-			series[i] = new(NullFloat64)
+			series[i] = &NullFloat64{}
 			series[i].Float64 = toFloat64(data)
 			series[i].Valid = true
 		}
@@ -117,7 +117,7 @@ func (d *CassandraDriver) Get(path string, r *schema.Range, agg *aggregate.Rule)
 		).Consistency(gocql.One).Iter()
 		for iter.Scan(&data, &count, &time) {
 			i = r.Index(time)
-			series[i] = new(NullFloat64)
+			series[i] = &NullFloat64{}
 			series[i].Float64 = toFloat64(data) / float64(count)
 			series[i].Valid = true
 		}
