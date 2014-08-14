@@ -6,7 +6,6 @@ import (
 	"github.com/mattrobenolt/mineshaft/metric"
 	"github.com/mattrobenolt/mineshaft/schema"
 
-	"database/sql"
 	"encoding/json"
 	"log"
 	"net/url"
@@ -137,12 +136,11 @@ func NewFromConnection(url *url.URL) *Store {
 
 var registry = make(map[string]Driver)
 
-//NullFloat64 is a wrapper around sql.NullInt64 that satifies json.Marshaler
 type NullFloat64 struct {
-	sql.NullFloat64
+	Float64 float64
+	Valid   bool
 }
 
-//MarshalJSON is a wrapper around sql.NullFloat64 that satifies json.Marshaler
 func (nf *NullFloat64) MarshalJSON() ([]byte, error) {
 	var data interface{}
 
