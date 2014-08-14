@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"sync"
 )
 
 func invalidRequest(w http.ResponseWriter) {
@@ -115,17 +116,22 @@ func Metrics(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	var wg sync.WaitGroup
 	series := make(map[string]map[string]interface{})
 	for _, t := range targets {
-		r, data := appStore.Get(t, from, to)
-		series[t] = map[string]interface{}{
-			"from":   r.Lower,
-			"to":     r.Upper,
-			"step":   r.Rollup,
-			"series": data,
-		}
+		wg.Add(1)
+		go func(t string) {
+			r, data := appStore.Get(t, from, to)
+			series[t] = map[string]interface{}{
+				"from":   r.Lower,
+				"to":     r.Upper,
+				"step":   r.Rollup,
+				"series": data,
+			}
+			wg.Done()
+		}(t)
 	}
-
+	wg.Wait()
 	jsonResponse(w, series, http.StatusOK)
 }
 
