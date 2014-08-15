@@ -15,7 +15,7 @@ build:
 		echo "$(OK_COLOR)==>$(NO_COLOR) Installing dependencies"; \
 		$(GO) get -v -d ./...; \
 		echo "$(OK_COLOR)==>$(NO_COLOR) Compiling"; \
-		$(GO) install -v cmd/$${app}.go; \
+		$(GO) install -v ./cmd/$${app}; \
 		echo; \
 	done;
 
@@ -28,5 +28,6 @@ test:
 
 clean:
 	rm -rf $(GOBIN)/*
+	rm -rf $(GOPATH)/pkg/*
 
 .PHONY: build run test clean
