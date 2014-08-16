@@ -16,17 +16,28 @@ func (p *Point) Release() {
 
 type Points []*Point
 
-var statsPool = sync.Pool{
-	New: func() interface{} { return &Point{} },
+func (ps Points) Release() {
+	for _, p := range ps {
+		if p != nil {
+			p.Release()
+		}
+	}
+}
+
+var pointPool = sync.Pool{
+	New: func() interface{} {
+		var p Point
+		return &p
+	},
 }
 
 func New() *Point {
-	return statsPool.Get().(*Point)
+	return pointPool.Get().(*Point)
 }
 
 func Release(p *Point) {
 	p.Path = ""
 	p.Value = 0
 	p.Timestamp = 0
-	statsPool.Put(p)
+	pointPool.Put(p)
 }

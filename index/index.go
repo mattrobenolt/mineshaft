@@ -37,7 +37,10 @@ func (p *Path) Release() {
 }
 
 var pathPool = sync.Pool{
-	New: func() interface{} { return &Path{} },
+	New: func() interface{} {
+		var p Path
+		return &p
+	},
 }
 
 func NewPath() *Path {

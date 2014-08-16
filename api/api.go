@@ -122,6 +122,7 @@ func Metrics(w http.ResponseWriter, req *http.Request) {
 		wg.Add(1)
 		go func(t string) {
 			r, data := appStore.Get(t, from, to)
+			defer data.Release()
 			series[t] = map[string]interface{}{
 				"from":   r.Lower,
 				"to":     r.Upper,

@@ -56,7 +56,7 @@ func (s *Store) GetRange(path string, from, to int) *schema.Range {
 	return s.schema.GetRange(path, from, to)
 }
 
-func (s *Store) Get(path string, from, to int) (*schema.Range, []*NullFloat64) {
+func (s *Store) Get(path string, from, to int) (*schema.Range, NullFloat64s) {
 	r := s.GetRange(path, from, to)
 	agg := s.aggregation.Match(path)
 	log.Println("store: range", r, "agg", agg)
@@ -108,7 +108,7 @@ func (s *Store) QueryIndex(query string) ([]*index.Path, error) {
 type Driver interface {
 	Init(*url.URL) error
 	WriteToBucket(*metric.Point, *aggregate.Rule, *schema.Bucket) error
-	Get(string, *schema.Range, *aggregate.Rule) []*NullFloat64
+	Get(string, *schema.Range, *aggregate.Rule) NullFloat64s
 	Ping() error
 	Close()
 }
@@ -146,4 +146,36 @@ func (nf *NullFloat64) MarshalJSON() ([]byte, error) {
 		return []byte("null"), nil
 	}
 	return json.Marshal(nf.Float64)
+}
+
+func (nf *NullFloat64) Release() {
+	ReleaseNullFloat64(nf)
+}
+
+type NullFloat64s []*NullFloat64
+
+func (nfs NullFloat64s) Release() {
+	for _, nf := range nfs {
+		if nf != nil {
+			nf.Release()
+		}
+	}
+}
+
+var nullFloat64Pool = sync.Pool{
+	New: func() interface{} {
+		var nf NullFloat64
+		return &nf
+	},
+}
+
+func NewNullFloat64(d float64, valid bool) *NullFloat64 {
+	nf := nullFloat64Pool.Get().(*NullFloat64)
+	nf.Float64 = d
+	nf.Valid = valid
+	return nf
+}
+
+func ReleaseNullFloat64(nf *NullFloat64) {
+	nullFloat64Pool.Put(nf)
 }
