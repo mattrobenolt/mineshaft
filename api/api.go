@@ -118,11 +118,15 @@ func Metrics(w http.ResponseWriter, req *http.Request) {
 
 	var wg sync.WaitGroup
 	series := make(map[string]map[string]interface{})
+	defer func() {
+		for _, v := range series {
+			v["series"].(store.NullFloat64s).Release()
+		}
+	}()
 	for _, t := range targets {
 		wg.Add(1)
 		go func(t string) {
 			r, data := appStore.Get(t, from, to)
-			defer data.Release()
 			series[t] = map[string]interface{}{
 				"from":   r.Lower,
 				"to":     r.Upper,
