@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/url"
 	"strings"
+	"sync"
 )
 
 type ElasticSearchDriver struct {
@@ -17,6 +18,7 @@ type ElasticSearchDriver struct {
 	index   string
 
 	cache map[string]struct{}
+	mux   sync.RWMutex
 }
 
 func (d *ElasticSearchDriver) Init(url *url.URL) (err error) {
@@ -41,12 +43,17 @@ func (d *ElasticSearchDriver) Init(url *url.URL) (err error) {
 }
 
 func (d *ElasticSearchDriver) Update(path string) error {
-	if _, ok := d.cache[path]; ok {
+	d.mux.RLock()
+	_, ok := d.cache[path]
+	d.mux.RUnlock()
+	if ok {
 		// path was already cached
 		return nil
 	}
 	log.Println("index/elasticsearch: new path:", path)
+	d.mux.Lock()
 	d.cache[path] = struct{}{}
+	d.mux.Unlock()
 	end := len(path)
 	depth := strings.Count(path, ".")
 	leaf := true
