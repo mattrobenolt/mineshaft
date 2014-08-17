@@ -1,9 +1,9 @@
 package carbon
 
 import (
+	pickle "github.com/kisielk/og-rek"
 	"github.com/mattrobenolt/mineshaft/metric"
 	"github.com/mattrobenolt/mineshaft/store"
-	pickle "github.com/mattrobenolt/og-rek"
 
 	"bufio"
 	"encoding/binary"
