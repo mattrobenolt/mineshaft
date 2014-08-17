@@ -42,7 +42,7 @@ func main() {
 	}
 	defer store.Close()
 
-	go carbon.ListenAndServe(conf.Carbon.Host+":"+conf.Carbon.Port, store)
+	go carbon.ListenAndServeAscii(conf.Carbon.Host+":"+conf.Carbon.Port, store)
 	go api.ListenAndServe(conf.Http.Host+":"+conf.Http.Port, store)
 	select {}
 }
