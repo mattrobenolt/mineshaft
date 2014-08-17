@@ -121,8 +121,6 @@ func (d *CassandraDriver) Get(path string, r *schema.Range, agg *aggregate.Rule)
 				series[i] = NewNullFloat64(toFloat64(data)/float64(count), true)
 			}
 		}
-	default:
-		panic("lol nope")
 	}
 	if err := iter.Close(); err != nil {
 		log.Fatal(err)
