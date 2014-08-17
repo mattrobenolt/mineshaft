@@ -20,9 +20,15 @@ func init() {
 }
 
 type Config struct {
-	Carbon struct {
-		Host string
-		Port string
+	CarbonAscii struct {
+		Enabled bool
+		Host    string
+		Port    string
+	}
+	CarbonPickle struct {
+		Enabled bool
+		Host    string
+		Port    string
 	}
 	Http struct {
 		Host string
@@ -58,16 +64,24 @@ func LoadFile(path string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	c := &Config{}
-	c.Carbon.Host = file["carbon"]["host"]
-	c.Carbon.Port = file["carbon"]["port"]
+	var c Config
+	if _, ok := file["carbon-ascii"]; ok {
+		c.CarbonAscii.Host = file["carbon-ascii"]["host"]
+		c.CarbonAscii.Port = file["carbon-ascii"]["port"]
+		c.CarbonAscii.Enabled = true
+	}
+	if _, ok := file["carbon-pickle"]; ok {
+		c.CarbonPickle.Host = file["carbon-pickle"]["host"]
+		c.CarbonPickle.Port = file["carbon-pickle"]["port"]
+		c.CarbonPickle.Enabled = true
+	}
 	c.Http.Host = file["http"]["host"]
 	c.Http.Port = file["http"]["port"]
 	c.Store.Connection, _ = url.Parse(file["store"]["connection"])
 	c.Store.Schema = file["store"]["schema"]
 	c.Store.Aggregates = file["store"]["aggregates"]
 	c.Index.Connection, _ = url.Parse(file["index"]["connection"])
-	return c, nil
+	return &c, nil
 }
 
 // Open the global configuration file

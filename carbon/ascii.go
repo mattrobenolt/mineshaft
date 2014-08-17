@@ -56,7 +56,7 @@ func recvAscii(c net.Conn, s *store.Store) {
 }
 
 func ListenAndServeAscii(addr string, s *store.Store) error {
-	log.Println("Starting carbon on", addr)
+	log.Println("carbon/ascii: listening on", addr)
 
 	l, err := net.Listen("tcp", addr)
 	if err != nil {

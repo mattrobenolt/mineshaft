@@ -150,7 +150,7 @@ var appStore *store.Store
 
 func ListenAndServe(addr string, s *store.Store) error {
 	appStore = s
-	log.Println("Starting api on", addr)
+	log.Println("api/api: listening on", addr)
 
 	http.HandleFunc("/ping", Ping)
 	http.HandleFunc("/metrics", Metrics)

@@ -42,7 +42,13 @@ func main() {
 	}
 	defer store.Close()
 
-	go carbon.ListenAndServeAscii(conf.Carbon.Host+":"+conf.Carbon.Port, store)
+	if conf.CarbonAscii.Enabled {
+		go carbon.ListenAndServeAscii(conf.CarbonAscii.Host+":"+conf.CarbonAscii.Port, store)
+	}
+	if conf.CarbonPickle.Enabled {
+		go carbon.ListenAndServePickle(conf.CarbonPickle.Host+":"+conf.CarbonPickle.Port, store)
+	}
+
 	go api.ListenAndServe(conf.Http.Host+":"+conf.Http.Port, store)
 	select {}
 }
