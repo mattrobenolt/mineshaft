@@ -2,17 +2,13 @@ package index
 
 import (
 	elastigo "github.com/mattbaird/elastigo/lib"
-	"github.com/mattrobenolt/mineshaft/set"
 
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"net/url"
-	"path"
-	"strconv"
 	"strings"
-	"time"
 )
 
 type ElasticSearchDriver struct {
@@ -20,7 +16,7 @@ type ElasticSearchDriver struct {
 	indexer *elastigo.BulkIndexer
 	index   string
 
-	cache *set.Set
+	cache map[string]struct{}
 }
 
 func (d *ElasticSearchDriver) Init(url *url.URL) (err error) {
@@ -40,29 +36,17 @@ func (d *ElasticSearchDriver) Init(url *url.URL) (err error) {
 	d.indexer = d.conn.NewBulkIndexer(10)
 	d.indexer.Start()
 
-	var size int
-	if url.Query().Get("cache_size") == "" {
-		size = 1000
-	} else {
-		size, _ = strconv.Atoi(url.Query().Get("cache_size"))
-	}
-	dir := url.Query().Get("cache_dir")
-	if dir == "" {
-		log.Println("index/elasticsearch: creating a", size, "key in-memory cache")
-		d.cache = set.New(size)
-	} else {
-		log.Println("index/elasticsearch: creating a", size, "key persistent cache in", dir)
-		d.cache, _ = set.NewPersistent(size, path.Join(dir, "/keycache.gz"), 1*time.Minute)
-	}
+	d.cache = map[string]struct{}{}
 	return nil
 }
 
 func (d *ElasticSearchDriver) Update(path string) error {
-	if !d.cache.Add(path) {
+	if _, ok := d.cache[path]; ok {
 		// path was already cached
 		return nil
 	}
 	log.Println("index/elasticsearch: new path:", path)
+	d.cache[path] = struct{}{}
 	end := len(path)
 	depth := strings.Count(path, ".")
 	leaf := true
@@ -169,7 +153,6 @@ func (d *ElasticSearchDriver) Query(path string) ([]*Path, error) {
 }
 
 func (d *ElasticSearchDriver) Close() {
-	d.cache.Close()
 	return
 }
 
