@@ -1,20 +1,34 @@
 package carbon
 
 import (
-	pickle "github.com/kisielk/og-rek"
 	"github.com/mattrobenolt/mineshaft/metric"
 	"github.com/mattrobenolt/mineshaft/store"
+	pickle "github.com/mattrobenolt/og-rek"
 
+	"bufio"
 	"log"
 	"net"
 )
 
 func recvPickle(c net.Conn, s *store.Store) {
-	point := metric.New()
+	var (
+		reader *bufio.Reader
+		point  = metric.New()
+		err    error
+		data   interface{}
+	)
 	defer c.Close()
 	defer point.Release()
 
-	data, err := pickle.NewDecoder(c).Decode()
+	reader = bufio.NewReader(c)
+	// The first 4 bytes are the header,
+	// which we don't need, so we can safely discard
+	reader.ReadByte()
+	reader.ReadByte()
+	reader.ReadByte()
+	reader.ReadByte()
+
+	data, err = pickle.NewDecoder(reader).Decode()
 	if err != nil {
 		log.Println("carbon/pickle: error decoding pickle stream", err)
 		return
