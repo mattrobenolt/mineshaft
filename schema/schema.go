@@ -186,15 +186,10 @@ func (r *Range) Len() int {
 
 // The index to a bucket within the range
 func (r *Range) Index(n int64) int {
-	// log.Println("n:", n)
-	// log.Println("r.Lower:", r.Lower)
-	// log.Println("r.Upper:", r.Upper)
 	if int(n) < r.Lower || int(n) > r.Upper {
 		return -1
 	}
 	lower := roundDown(int(n), r.Rollup) - r.Lower
-	// log.Println("lower:", lower)
 	i := lower / r.Rollup
-	// log.Println("i:", i)
 	return i
 }
