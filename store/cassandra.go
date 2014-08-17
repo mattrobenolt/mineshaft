@@ -75,6 +75,8 @@ func (d *CassandraDriver) WriteToBucket(p *metric.Point, agg *aggregate.Rule, b 
 
 func (d *CassandraDriver) Get(path string, r *schema.Range, agg *aggregate.Rule) (series NullFloat64s) {
 	var iter *gocql.Iter
+	var i int
+	var time int64
 
 	log.Println("num_buckets", r.Len())
 	series = make(NullFloat64s, r.Len())
@@ -82,32 +84,42 @@ func (d *CassandraDriver) Get(path string, r *schema.Range, agg *aggregate.Rule)
 	switch agg.Method {
 	case aggregate.MIN, aggregate.MAX, aggregate.LAST:
 		var data float64
-		var time int64
 		iter = d.session.Query(
 			MINMAXLAST_SELECT,
 			r.Rollup, r.Period, path, r.Lower, r.Upper,
 		).Consistency(gocql.One).Iter()
 		for iter.Scan(&data, &time) {
-			series[r.Index(time)] = NewNullFloat64(data, true)
+			if i = r.Index(time); i < 0 {
+				log.Println("store/cassandra: point out of range", time)
+			} else {
+				series[i] = NewNullFloat64(data, true)
+			}
 		}
 	case aggregate.SUM:
-		var data, time int64
+		var data int64
 		iter = d.session.Query(
 			SUM_SELECT,
 			r.Rollup, r.Period, path, r.Lower, r.Upper,
 		).Consistency(gocql.One).Iter()
 		for iter.Scan(&data, &time) {
-			series[r.Index(time)] = NewNullFloat64(toFloat64(data), true)
+			if i = r.Index(time); i < 0 {
+				log.Println("store/cassandra: point out of range", time)
+			} else {
+				series[i] = NewNullFloat64(toFloat64(data), true)
+			}
 		}
 	case aggregate.AVG:
-		log.Println("querying avg")
-		var data, count, time int64
+		var data, count int64
 		iter = d.session.Query(
 			AVG_SELECT,
 			r.Rollup, r.Period, path, r.Lower, r.Upper,
 		).Consistency(gocql.One).Iter()
 		for iter.Scan(&data, &count, &time) {
-			series[r.Index(time)] = NewNullFloat64(toFloat64(data)/float64(count), true)
+			if i = r.Index(time); i < 0 {
+				log.Println("store/cassandra: point out of range", time)
+			} else {
+				series[i] = NewNullFloat64(toFloat64(data)/float64(count), true)
+			}
 		}
 	default:
 		panic("lol nope")
