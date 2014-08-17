@@ -201,7 +201,7 @@ func (p *parser) convertOr() {
 		}
 
 		// Only allow digits and letters in an OR
-		if isDigit(c) || isAlpha(c) {
+		if isDigit(c) || isAlpha(c) || c == '-' {
 			continue
 		}
 
