@@ -140,16 +140,22 @@ func Metrics(w http.ResponseWriter, req *http.Request) {
 	jsonResponse(w, series, http.StatusOK)
 }
 
+func Intervals(w http.ResponseWriter, r *http.Request) {
+	target := r.URL.Query().Get("target")
+	buckets := appStore.GetBuckets(target)
+	jsonResponse(w, buckets, http.StatusOK)
+}
+
 var appStore *store.Store
 
 func ListenAndServe(addr string, s *store.Store) error {
 	appStore = s
 	log.Println("Starting api on", addr)
 
-	http.HandleFunc("/ping/", Ping)
 	http.HandleFunc("/ping", Ping)
 	http.HandleFunc("/metrics", Metrics)
 	http.HandleFunc("/paths", Paths)
 	http.HandleFunc("/children", Children)
+	http.HandleFunc("/intervals", Intervals)
 	panic(http.ListenAndServe(addr, nil))
 }

@@ -23,7 +23,7 @@ type Store struct {
 func (s *Store) Set(p *metric.Point) error {
 	var wg sync.WaitGroup
 
-	buckets := s.schema.Match(p.Path).Buckets
+	buckets := s.GetBuckets(p.Path)
 	agg := s.aggregation.Match(p.Path)
 
 	// Log the response time
@@ -61,6 +61,10 @@ func (s *Store) Get(path string, from, to int) (*schema.Range, NullFloat64s) {
 	agg := s.aggregation.Match(path)
 	log.Println("store: range", r, "agg", agg)
 	return r, s.driver.Get(path, r, agg)
+}
+
+func (s *Store) GetBuckets(path string) []*schema.Bucket {
+	return s.schema.Match(path).Buckets
 }
 
 func (s *Store) Close() {
