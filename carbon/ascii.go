@@ -3,24 +3,27 @@ package carbon
 import (
 	"github.com/mattrobenolt/mineshaft/metric"
 	"github.com/mattrobenolt/mineshaft/store"
+	"github.com/mattrobenolt/semaphore"
 
 	"bufio"
 	"log"
 	"net"
 	"strconv"
+	"sync"
 )
 
 func recvAscii(c net.Conn, s *store.Store) {
 	var (
 		scanner   *bufio.Scanner
-		point     = metric.New()
 		more      bool
 		value     float64
 		err       error
 		timestamp uint64
+		path      string
+		wg        sync.WaitGroup
+		sem       = semaphore.New(10)
 	)
 	defer c.Close()
-	defer point.Release()
 
 	scanner = bufio.NewScanner(c)
 	scanner.Split(bufio.ScanWords)
@@ -30,29 +33,42 @@ func recvAscii(c net.Conn, s *store.Store) {
 			// EOF
 			return
 		}
-		point.Path = scanner.Text()
+
+		path = scanner.Text()
 		if more = scanner.Scan(); !more {
 			log.Println("carbon/ascii: unexpected eof")
 			return
 		}
 		value, err = strconv.ParseFloat(scanner.Text(), 64)
 		if err != nil {
-			log.Println("carbon/ascii: Error parsing value", err, point.Path)
+			log.Println("carbon/ascii: Error parsing value", err, path)
 			return
 		}
-		point.Value = value
 		if more = scanner.Scan(); !more {
 			log.Println("carbon/ascii: unexpected eof")
 			return
 		}
 		timestamp, err = strconv.ParseUint(scanner.Text(), 10, 32)
 		if err != nil {
-			log.Println("carbon/ascii: Error parsing timestamp", err, point.Path, point.Value)
+			log.Println("carbon/ascii: Error parsing timestamp", err, path, value)
 			return
 		}
-		point.Timestamp = uint32(timestamp)
-		s.Set(point)
+
+		wg.Add(1)
+		sem.Wait()
+		go func(path string, value float64, timestamp uint32) {
+			p := metric.New()
+			p.Path = path
+			p.Value = value
+			p.Timestamp = timestamp
+			s.Set(p)
+			p.Release()
+			wg.Done()
+			sem.Signal()
+		}(path, value, uint32(timestamp))
 	}
+
+	wg.Wait()
 }
 
 func ListenAndServeAscii(addr string, s *store.Store) error {

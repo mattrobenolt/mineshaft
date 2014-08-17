@@ -4,26 +4,30 @@ import (
 	pickle "github.com/kisielk/og-rek"
 	"github.com/mattrobenolt/mineshaft/metric"
 	"github.com/mattrobenolt/mineshaft/store"
+	"github.com/mattrobenolt/semaphore"
 
 	"bufio"
 	"encoding/binary"
 	"io"
 	"log"
 	"net"
+	"sync"
 )
 
 func recvPickle(c net.Conn, s *store.Store) {
 	var (
-		reader  = bufio.NewReader(c)
-		lreader = &io.LimitedReader{reader, 0}
-		point   = metric.New()
-		err     error
-		data    interface{}
-		// i      int
-		length uint32
+		reader    = bufio.NewReader(c)
+		lreader   = &io.LimitedReader{reader, 0}
+		err       error
+		data      interface{}
+		length    uint32
+		wg        sync.WaitGroup
+		sem       = semaphore.New(10)
+		path      string
+		value     float64
+		timestamp uint32
 	)
 	defer c.Close()
-	defer point.Release()
 
 	for {
 		err = binary.Read(reader, binary.BigEndian, &length)
@@ -42,19 +46,33 @@ func recvPickle(c net.Conn, s *store.Store) {
 		}
 
 		for _, d := range data.([]interface{}) {
-			point.Path = d.([]interface{})[0].(string)
-			point.Timestamp = uint32(d.([]interface{})[1].([]interface{})[0].(int64))
+			path = d.([]interface{})[0].(string)
+			timestamp = uint32(d.([]interface{})[1].([]interface{})[0].(int64))
 			switch t := d.([]interface{})[1].([]interface{})[1].(type) {
 			case int64:
-				point.Value = float64(d.([]interface{})[1].([]interface{})[1].(int64))
+				value = float64(d.([]interface{})[1].([]interface{})[1].(int64))
 			case float64:
-				point.Value = d.([]interface{})[1].([]interface{})[1].(float64)
+				value = d.([]interface{})[1].([]interface{})[1].(float64)
 			default:
 				log.Println("carbon/pickle: invalid type", t)
 			}
-			s.Set(point)
+
+			wg.Add(1)
+			sem.Wait()
+			go func(path string, value float64, timestamp uint32) {
+				p := metric.New()
+				p.Path = path
+				p.Value = value
+				p.Timestamp = timestamp
+				s.Set(p)
+				p.Release()
+				wg.Done()
+				sem.Signal()
+			}(path, value, timestamp)
 		}
 	}
+
+	wg.Wait()
 }
 
 func ListenAndServePickle(addr string, s *store.Store) error {
