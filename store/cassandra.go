@@ -77,9 +77,10 @@ func (d *CassandraDriver) Get(path string, r *schema.Range, agg *aggregate.Rule)
 	var iter *gocql.Iter
 	var i int
 	var time int64
+	num_buckets := r.Len()
 
-	log.Println("num_buckets", r.Len())
-	series = make(NullFloat64s, r.Len())
+	log.Println("num_buckets", num_buckets)
+	series = make(NullFloat64s, num_buckets)
 
 	switch agg.Method {
 	case aggregate.MIN, aggregate.MAX, aggregate.LAST:
@@ -89,7 +90,7 @@ func (d *CassandraDriver) Get(path string, r *schema.Range, agg *aggregate.Rule)
 			r.Rollup, r.Period, path, r.Lower, r.Upper,
 		).Consistency(gocql.One).Iter()
 		for iter.Scan(&data, &time) {
-			if i = r.Index(time); i < 0 {
+			if i = r.Index(time); i < 0 || i >= num_buckets-1 {
 				log.Println("store/cassandra: point out of range", time)
 			} else {
 				series[i] = NewNullFloat64(data, true)
@@ -102,7 +103,7 @@ func (d *CassandraDriver) Get(path string, r *schema.Range, agg *aggregate.Rule)
 			r.Rollup, r.Period, path, r.Lower, r.Upper,
 		).Consistency(gocql.One).Iter()
 		for iter.Scan(&data, &time) {
-			if i = r.Index(time); i < 0 {
+			if i = r.Index(time); i < 0 || i >= num_buckets-1 {
 				log.Println("store/cassandra: point out of range", time)
 			} else {
 				series[i] = NewNullFloat64(toFloat64(data), true)
@@ -115,7 +116,7 @@ func (d *CassandraDriver) Get(path string, r *schema.Range, agg *aggregate.Rule)
 			r.Rollup, r.Period, path, r.Lower, r.Upper,
 		).Consistency(gocql.One).Iter()
 		for iter.Scan(&data, &count, &time) {
-			if i = r.Index(time); i < 0 {
+			if i = r.Index(time); i < 0 || i >= num_buckets-1 {
 				log.Println("store/cassandra: point out of range", time)
 			} else {
 				series[i] = NewNullFloat64(toFloat64(data)/float64(count), true)
