@@ -30,6 +30,11 @@ type Config struct {
 		Host    string
 		Port    string
 	}
+	CarbonProtobuf struct {
+		Enabled bool
+		Host    string
+		Port    string
+	}
 	Http struct {
 		Host string
 		Port string
@@ -74,6 +79,11 @@ func LoadFile(path string) (*Config, error) {
 		c.CarbonPickle.Host = file["carbon-pickle"]["host"]
 		c.CarbonPickle.Port = file["carbon-pickle"]["port"]
 		c.CarbonPickle.Enabled = true
+	}
+	if _, ok := file["carbon-protobuf"]; ok {
+		c.CarbonProtobuf.Host = file["carbon-protobuf"]["host"]
+		c.CarbonProtobuf.Port = file["carbon-protobuf"]["port"]
+		c.CarbonProtobuf.Enabled = true
 	}
 	c.Http.Host = file["http"]["host"]
 	c.Http.Port = file["http"]["port"]

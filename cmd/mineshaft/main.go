@@ -48,6 +48,9 @@ func main() {
 	if conf.CarbonPickle.Enabled {
 		go carbon.ListenAndServePickle(conf.CarbonPickle.Host+":"+conf.CarbonPickle.Port, store)
 	}
+	if conf.CarbonProtobuf.Enabled {
+		go carbon.ListenAndServeProtobuf(conf.CarbonProtobuf.Host+":"+conf.CarbonProtobuf.Port, store)
+	}
 
 	go api.ListenAndServe(conf.Http.Host+":"+conf.Http.Port, store)
 	select {}

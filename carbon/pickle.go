@@ -36,6 +36,7 @@ func recvPickle(c net.Conn, s *store.Store) {
 		}
 		if err != nil {
 			log.Println("carbon/pickle: error reading stream", err)
+			return
 		}
 
 		lreader.N = int64(length)
