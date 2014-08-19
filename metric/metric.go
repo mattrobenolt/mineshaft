@@ -4,14 +4,20 @@ import (
 	"sync"
 )
 
-type Point struct {
-	Path      string
-	Value     float64
-	Timestamp uint32
+func (m *Point) SetPath(v string) {
+	m.Path = &v
 }
 
-func (p *Point) Release() {
-	Release(p)
+func (m *Point) SetValue(v float64) {
+	m.Value = &v
+}
+
+func (m *Point) SetTimestamp(v uint32) {
+	m.Timestamp = &v
+}
+
+func (m *Point) Release() {
+	Release(m)
 }
 
 type Points []*Point
@@ -36,8 +42,6 @@ func New() *Point {
 }
 
 func Release(p *Point) {
-	p.Path = ""
-	p.Value = 0
-	p.Timestamp = 0
+	p.Reset()
 	pointPool.Put(p)
 }

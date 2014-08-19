@@ -58,9 +58,9 @@ func recvAscii(c net.Conn, s *store.Store) {
 		sem.Wait()
 		go func(path string, value float64, timestamp uint32) {
 			p := metric.New()
-			p.Path = path
-			p.Value = value
-			p.Timestamp = timestamp
+			p.SetPath(path)
+			p.SetValue(value)
+			p.SetTimestamp(timestamp)
 			s.Set(p)
 			p.Release()
 			wg.Done()

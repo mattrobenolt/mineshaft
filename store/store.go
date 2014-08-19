@@ -23,8 +23,8 @@ type Store struct {
 func (s *Store) Set(p *metric.Point) error {
 	var wg sync.WaitGroup
 
-	buckets := s.GetBuckets(p.Path)
-	agg := s.aggregation.Match(p.Path)
+	buckets := s.GetBuckets(p.GetPath())
+	agg := s.aggregation.Match(p.GetPath())
 
 	// Log the response time
 	start := time.Now()
@@ -34,7 +34,7 @@ func (s *Store) Set(p *metric.Point) error {
 
 	go func() {
 		wg.Add(1)
-		s.index.Update(p.Path)
+		s.index.Update(p.GetPath())
 		wg.Done()
 	}()
 	for _, bucket := range buckets {

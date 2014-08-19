@@ -31,9 +31,9 @@ func (d *CassandraDriver) WriteToBucket(p *metric.Point, agg *aggregate.Rule, b 
 	age := int(b.Ttl.Seconds())
 	path := p.Path
 	rollup := int(b.Rollup.Seconds())
-	time := b.RoundDown(p.Timestamp)
+	time := b.RoundDown(p.GetTimestamp())
 	period := b.Period
-	value := p.Value
+	value := p.GetValue()
 
 	switch agg.Method {
 	case aggregate.MIN:
