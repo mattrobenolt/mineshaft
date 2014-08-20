@@ -57,12 +57,12 @@ func (d *CassandraDriver) WriteToBucket(p *metric.Point, agg *aggregate.Rule, b 
 	case aggregate.SUM:
 		return d.session.Query(
 			SUM_UPDATE,
-			age, toInt64(value), rollup, period, path, time,
+			toInt64(value), rollup, period, path, time,
 		).Exec()
 	case aggregate.AVG:
 		return d.session.Query(
 			AVG_UPDATE,
-			age, toInt64(value), rollup, period, path, time,
+			toInt64(value), rollup, period, path, time,
 		).Exec()
 	case aggregate.LAST:
 		return d.session.Query(
@@ -161,13 +161,13 @@ func toFloat64(i int64) float64 {
 }
 
 const AVG_UPDATE = `
-UPDATE avg USING TTL ?
+UPDATE avg
 SET data = data + ?, count = count + 1
 WHERE rollup = ? AND period = ? AND path = ? AND time = ?
 `
 
 const SUM_UPDATE = `
-UPDATE sum USING TTL ?
+UPDATE sum
 SET data = data + ?
 WHERE rollup = ? AND period = ? AND path = ? AND time = ?
 `
