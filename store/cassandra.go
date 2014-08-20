@@ -31,7 +31,7 @@ func (d *CassandraDriver) WriteToBucket(p *metric.Point, agg *aggregate.Rule, b 
 	age := int(b.Ttl.Seconds())
 	path := p.Path
 	rollup := int(b.Rollup.Seconds())
-	time := b.RoundDown(p.GetTimestamp())
+	time := p.GetTimestamp()
 	period := b.Period
 	value := p.GetValue()
 
@@ -56,13 +56,13 @@ func (d *CassandraDriver) WriteToBucket(p *metric.Point, agg *aggregate.Rule, b 
 		).Exec()
 	case aggregate.SUM:
 		return d.session.Query(
-			SUM_UPDATE,
-			toInt64(value), rollup, period, path, time,
+			SUM_INSERT,
+			period, rollup, path, time, value, age,
 		).Exec()
 	case aggregate.AVG:
 		return d.session.Query(
-			AVG_UPDATE,
-			toInt64(value), rollup, period, path, time,
+			AVG_INSERT,
+			period, rollup, path, time, value, age,
 		).Exec()
 	case aggregate.LAST:
 		return d.session.Query(
@@ -160,44 +160,44 @@ func toFloat64(i int64) float64 {
 	return float64(i) / PRECISION
 }
 
-const AVG_UPDATE = `
-UPDATE avg
-SET data = data + ?, count = count + 1
-WHERE rollup = ? AND period = ? AND path = ? AND time = ?
+const AVG_INSERT = `
+INSERT INTO avg (period, rollup, path, time, value)
+VALUES (?, ?, ?, ?, ?)
+USING TTL ?
 `
 
-const SUM_UPDATE = `
-UPDATE sum
-SET data = data + ?
-WHERE rollup = ? AND period = ? AND path = ? AND time = ?
+const SUM_INSERT = `
+INSERT INTO sum (period, rollup, path, time, value)
+VALUES (?, ?, ?, ?, ?)
+USING TTL ?
 `
 
 const LAST_UPDATE = `
 UPDATE minmaxlast USING TTL ?
-SET data = ?
+SET value = ?
 WHERE rollup = ? AND period = ? AND path = ? AND time = ?
 `
 
 const MINMAX_UPDATE = `
 UPDATE minmaxlast USING TTL ? AND TIMESTAMP ?
-SET data = ?
+SET value = ?
 WHERE rollup = ? AND period = ? AND path = ? AND time = ?
 `
 
 const AVG_SELECT = `
-SELECT data, count, time
+SELECT value, count, time
 FROM avg
 WHERE rollup = ? AND period = ? AND path = ? AND time >= ? AND time <= ?
 `
 
 const SUM_SELECT = `
-SELECT data, time
+SELECT value, time
 FROM sum
 WHERE rollup = ? AND period = ? AND path = ? AND time >= ? AND time <= ?
 `
 
 const MINMAXLAST_SELECT = `
-SELECT data, time
+SELECT value, time
 FROM minmaxlast
 WHERE rollup = ? AND period = ? AND path = ? AND time >= ? AND time <= ?
 `

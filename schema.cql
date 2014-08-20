@@ -12,8 +12,7 @@ CREATE TABLE avg (
   rollup int,
   path text,
   time bigint,
-  data counter,
-  count counter,
+  value double,
   PRIMARY KEY ((period, rollup, path), time)
 ) WITH
   bloom_filter_fp_chance=0.010000 AND
@@ -28,7 +27,7 @@ CREATE TABLE avg (
   default_time_to_live=0 AND
   speculative_retry='NONE' AND
   memtable_flush_period_in_ms=0 AND
-  compaction={'class': 'SizeTieredCompactionStrategy'} AND
+  compaction={'sstable_size_in_mb': '160', 'class': 'LeveledCompactionStrategy'} AND
   compression={'sstable_compression': 'LZ4Compressor'};
 
 -- Just simply update the data counter
@@ -37,7 +36,7 @@ CREATE TABLE sum (
   rollup int,
   path text,
   time bigint,
-  data counter,
+  value double,
   PRIMARY KEY ((period, rollup, path), time)
 ) WITH
   bloom_filter_fp_chance=0.010000 AND
@@ -52,7 +51,7 @@ CREATE TABLE sum (
   default_time_to_live=0 AND
   speculative_retry='NONE' AND
   memtable_flush_period_in_ms=0 AND
-  compaction={'class': 'SizeTieredCompactionStrategy'} AND
+  compaction={'sstable_size_in_mb': '160', 'class': 'LeveledCompactionStrategy'} AND
   compression={'sstable_compression': 'LZ4Compressor'};
 
 -- Just keep updating data with the last value seen
@@ -62,7 +61,7 @@ CREATE TABLE minmaxlast (
   rollup int,
   path text,
   time bigint,
-  data double,
+  value double,
   PRIMARY KEY ((period, rollup, path), time)
 ) WITH
   bloom_filter_fp_chance=0.010000 AND
@@ -77,5 +76,5 @@ CREATE TABLE minmaxlast (
   default_time_to_live=0 AND
   speculative_retry='NONE' AND
   memtable_flush_period_in_ms=0 AND
-  compaction={'class': 'SizeTieredCompactionStrategy'} AND
+  compaction={'sstable_size_in_mb': '160', 'class': 'LeveledCompactionStrategy'} AND
   compression={'sstable_compression': 'LZ4Compressor'};
