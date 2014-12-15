@@ -39,19 +39,19 @@ func SetupLogging() {
 	logger = log.NewDefaultLogger(level)
 }
 
-func GetLogger() log.Logger {
+func GetDefaultLogger() log.Logger {
 	if logger == nil {
 		SetupLogging()
 	}
 	return logger
 }
 
-func Debug(arg0 interface{}, args ...interface{})    { GetLogger().Debug(arg0, args...) }
-func Trace(arg0 interface{}, args ...interface{})    { GetLogger().Trace(arg0, args...) }
-func Info(arg0 interface{}, args ...interface{})     { GetLogger().Info(arg0, args...) }
-func Warn(arg0 interface{}, args ...interface{})     { GetLogger().Warn(arg0, args...) }
-func Error(arg0 interface{}, args ...interface{})    { GetLogger().Error(arg0, args...) }
-func Critical(arg0 interface{}, args ...interface{}) { GetLogger().Critical(arg0, args...) }
+func Debug(arg0 interface{}, args ...interface{})    { GetDefaultLogger().Debug(arg0, args...) }
+func Trace(arg0 interface{}, args ...interface{})    { GetDefaultLogger().Trace(arg0, args...) }
+func Info(arg0 interface{}, args ...interface{})     { GetDefaultLogger().Info(arg0, args...) }
+func Warn(arg0 interface{}, args ...interface{})     { GetDefaultLogger().Warn(arg0, args...) }
+func Error(arg0 interface{}, args ...interface{})    { GetDefaultLogger().Error(arg0, args...) }
+func Critical(arg0 interface{}, args ...interface{}) { GetDefaultLogger().Critical(arg0, args...) }
 
 // For compatability
 func Println(arg0 interface{}, args ...interface{}) { Info(arg0, args...) }
