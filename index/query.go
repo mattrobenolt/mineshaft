@@ -113,7 +113,7 @@ func (p *parser) convertAny() {
 			p.i++
 			return
 		default:
-			p.err = errors.New("invalid character")
+			p.err = errors.New(fmt.Sprintf("invalid character: %c", c))
 			return
 		}
 		if p.finished() {
