@@ -2,6 +2,7 @@ package carbon
 
 import (
 	pickle "github.com/kisielk/og-rek"
+	log "github.com/mattrobenolt/mineshaft/logging"
 	"github.com/mattrobenolt/mineshaft/metric"
 	"github.com/mattrobenolt/mineshaft/store"
 	"github.com/mattrobenolt/semaphore"
@@ -9,7 +10,6 @@ import (
 	"bufio"
 	"encoding/binary"
 	"io"
-	"log"
 	"net"
 	"sync"
 )

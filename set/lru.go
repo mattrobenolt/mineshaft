@@ -2,12 +2,12 @@ package set
 
 import (
 	"github.com/dustin/go-humanize"
+	log "github.com/mattrobenolt/mineshaft/logging"
 
 	"bufio"
 	"compress/gzip"
 	"container/list"
 	"io"
-	"log"
 	"os"
 	"path"
 	"time"

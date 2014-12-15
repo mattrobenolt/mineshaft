@@ -1,12 +1,12 @@
 package carbon
 
 import (
+	log "github.com/mattrobenolt/mineshaft/logging"
 	"github.com/mattrobenolt/mineshaft/metric"
 	"github.com/mattrobenolt/mineshaft/store"
 	"github.com/mattrobenolt/semaphore"
 
 	"bufio"
-	"log"
 	"net"
 	"strconv"
 	"sync"

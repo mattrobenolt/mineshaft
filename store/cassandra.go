@@ -3,11 +3,11 @@ package store
 import (
 	"github.com/gocql/gocql"
 	"github.com/mattrobenolt/mineshaft/aggregate"
+	log "github.com/mattrobenolt/mineshaft/logging"
 	"github.com/mattrobenolt/mineshaft/metric"
 	"github.com/mattrobenolt/mineshaft/schema"
 
 	"errors"
-	"log"
 	"math"
 	"net/url"
 	"strings"

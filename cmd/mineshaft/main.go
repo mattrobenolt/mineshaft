@@ -4,9 +4,9 @@ import (
 	"github.com/mattrobenolt/mineshaft/api"
 	"github.com/mattrobenolt/mineshaft/carbon"
 	"github.com/mattrobenolt/mineshaft/config"
+	log "github.com/mattrobenolt/mineshaft/logging"
 
 	"fmt"
-	"log"
 	"runtime"
 )
 

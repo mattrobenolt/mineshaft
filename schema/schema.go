@@ -1,10 +1,10 @@
 package schema
 
 import (
+	log "github.com/mattrobenolt/mineshaft/logging"
 	"github.com/vaughan0/go-ini"
 
 	"io"
-	"log"
 	"os"
 	"regexp"
 	"strconv"

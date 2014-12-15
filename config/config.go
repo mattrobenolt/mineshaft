@@ -3,12 +3,12 @@ package config
 import (
 	"github.com/mattrobenolt/mineshaft/aggregate"
 	"github.com/mattrobenolt/mineshaft/index"
+	log "github.com/mattrobenolt/mineshaft/logging"
 	"github.com/mattrobenolt/mineshaft/schema"
 	"github.com/mattrobenolt/mineshaft/store"
 	"github.com/vaughan0/go-ini"
 
 	"flag"
-	"log"
 	"net/url"
 	"os"
 )

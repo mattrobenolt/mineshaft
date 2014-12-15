@@ -1,11 +1,11 @@
 package aggregate
 
 import (
+	log "github.com/mattrobenolt/mineshaft/logging"
 	"github.com/vaughan0/go-ini"
 
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"regexp"
 )

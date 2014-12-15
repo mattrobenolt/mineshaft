@@ -2,11 +2,11 @@ package index
 
 import (
 	elastigo "github.com/mattbaird/elastigo/lib"
+	log "github.com/mattrobenolt/mineshaft/logging"
 
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/url"
 	"strings"
 	"sync"

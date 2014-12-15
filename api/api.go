@@ -2,11 +2,11 @@ package api
 
 import (
 	"github.com/mattrobenolt/mineshaft/index"
+	log "github.com/mattrobenolt/mineshaft/logging"
 	"github.com/mattrobenolt/mineshaft/store"
 
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"sync"

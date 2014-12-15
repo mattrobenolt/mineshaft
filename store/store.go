@@ -3,11 +3,11 @@ package store
 import (
 	"github.com/mattrobenolt/mineshaft/aggregate"
 	"github.com/mattrobenolt/mineshaft/index"
+	log "github.com/mattrobenolt/mineshaft/logging"
 	"github.com/mattrobenolt/mineshaft/metric"
 	"github.com/mattrobenolt/mineshaft/schema"
 
 	"encoding/json"
-	"log"
 	"net/url"
 	"sync"
 	"time"

@@ -21,7 +21,7 @@ build:
 
 run: build
 	@echo "$(OK_COLOR)==>$(NO_COLOR) Running"
-	$(GOBIN)/mineshaft -f=mineshaft.conf
+	$(GOBIN)/mineshaft -f=mineshaft.conf -l=DEBUG
 
 test:
 	$(GO) test -v ./...
