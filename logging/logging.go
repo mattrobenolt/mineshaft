@@ -52,10 +52,15 @@ func Info(arg0 interface{}, args ...interface{})     { GetDefaultLogger().Info(a
 func Warn(arg0 interface{}, args ...interface{})     { GetDefaultLogger().Warn(arg0, args...) }
 func Error(arg0 interface{}, args ...interface{})    { GetDefaultLogger().Error(arg0, args...) }
 func Critical(arg0 interface{}, args ...interface{}) { GetDefaultLogger().Critical(arg0, args...) }
-
-// For compatability
-func Println(arg0 interface{}, args ...interface{}) { Info(arg0, args...) }
 func Fatal(arg0 interface{}, args ...interface{}) {
 	Critical(arg0, args...)
 	os.Exit(1)
+}
+
+// For compatability
+func Println(args ...interface{}) {
+	// Need to strip the trailing newline
+	// because the logging functions add their own
+	s := fmt.Sprintln(args...)
+	Info(s[:len(s)-1])
 }
