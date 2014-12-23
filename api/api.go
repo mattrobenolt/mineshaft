@@ -22,8 +22,8 @@ func jsonResponse(w http.ResponseWriter, data interface{}, status int) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(status)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
 	w.Write(js)
 	// Always kindly end in a newline
 	w.Write([]byte{'\n'})
